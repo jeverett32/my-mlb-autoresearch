@@ -1,111 +1,54 @@
-autoresearch: MLB Kalshi Betting Edition
+# autoresearch: MLB Kalshi Betting Edition
 
 This is an autonomous experiment to optimize a model for predicting high-ROI MLB bets on Kalshi.
 
-Setup
+## Setup
 
-Agree on a run tag: Propose a tag based on today's date (e.g., mlb-mar26). The branch autoresearch/<tag> must not already exist.
+1.  **Agree on a run tag**: Propose a tag based on today's date (e.g., `mlb-mar26`). If the run tag already exists, enter that branch because it is the same day.
+2.  **Create the branch**: `git checkout -b autoresearch/<tag>` from master.
+3.  **Read context**:
+    * `master_mlb.csv`: The core dataset.
+    * `train.py`: The file you modify. It contains the full pipeline: feature engineering, model architecture, training loop, and the `evaluate()` function.
+    * `research_backlog.md`: A list of high-level strategic ideas and advanced features to implement.
+4.  **Initialize results.tsv**: Create `results.tsv` (tab-separated) with the header:
+    `commit	val_roi	val_brier	status	description`
+5.  **Initialize experiment_log.md**: Create this file to track qualitative insights and hypotheses.
 
-Create the branch: git checkout -b autoresearch/<tag> from master.
+## Experimentation
 
-Read context:
+Each run has a **5-minute wall clock budget** for training. Launch with: `uv run train.py`.
 
-master_mlb.csv: The core dataset.
+### What you CAN do:
+* **Modify `train.py`**: You are encouraged to experiment with architectures (MLP, XGBoost, Transformers), feature selection, decorrelation techniques, and betting logic (thresholds, Kelly sizing).
+* **Consult the Backlog**: Use `research_backlog.md` for inspiration when you need a new direction.
 
-train.py: The file you modify. Contains the full feature engineering pipeline (market columns, schedule context, lagged stats, rolling form), model architecture, training loop, Kalshi ROI/Brier evaluation, and betting logic (thresholds, stake sizing).
+### What you CANNOT do:
+* **Modify the evaluation metric**: The `evaluate()` function in `train.py` is the ground truth. Do not change it.
+* **Install new packages**: Use only what is provided in `pyproject.toml`.
 
-Initialize results.tsv: Create results.tsv with the header:
-commit	val_roi	val_brier	status	description
+## The "Thinker" Protocol
 
-Initialize experiment_log.md: Create a file to track qualitative insights across runs.
+Before every experiment, you **must**:
+1.  Read `experiment_log.md` to identify failed patterns and avoid repetition.
+2.  Consult `research_backlog.md` to see if a listed strategy fits the current situation.
+3.  Formulate a **hypothesis** (e.g., "The model ignores travel fatigue; adding a rest-diff interaction term should improve ROI").
+4.  Record this hypothesis in `experiment_log.md` **before** running the code.
 
-Experimentation
+## The Experiment Loop
 
-Each run has a 5-minute wall clock budget for training. Launch with: uv run train.py.
+1.  **Hypothesize**: Follow the "Thinker" Protocol.
+2.  **Edit**: Modify `train.py` based on your hypothesis.
+3.  **Commit**: `git commit -m "Description of experiment"`
+4.  **Run**: `uv run train.py > run.log 2>&1`
+5.  **Log**: Update `experiment_log.md` with the results (`val_roi`, `val_brier`, `n_bets`) and whether the idea was kept.
+6.  **Advance or Reset**:
+    * **If ROI improved**: Keep the commit and continue.
+    * **If ROI stayed same or worsened**: `git reset --hard HEAD~1`.
+7.  **The Plateau Rule**: If `val_roi` does not improve for 5 consecutive runs, you **must** pivot to a significantly different approach from the `research_backlog.md`.
 
-What you CAN do:
-
-Modify train.py. You are encouraged to experiment with:
-
-Model architectures (MLPs, Transformers, etc.).
-
-Feature selection/weighting.
-
-Decorrelation techniques (Hubáček-style market price decorrelation).
-
-Betting logic: confidence thresholds ($\phi$), Kelly Criterion variants, or Sharpe-based stake sizing.
-
-Hyperparameters (LR, Batch Size, Weight Decay).
-
-What you CANNOT do:
-
-Modify the evaluation metric code (the `evaluate()` function in train.py).
-
-Install new packages not in pyproject.toml.
-
-Metrics of Success:
-
-ROI (Primary): The goal is to maximize Return on Investment on the validation set.
-
-Brier Score (Secondary): Ensure the probabilities are well-calibrated.
-
-Simplicity: If ROI is similar, favor the simpler model.
-
-Output & Logging
-
-The script prints:
+**NEVER STOP**: Continue iterating indefinitely until manually interrupted.
 
 ---
-val_roi:        0.152
-val_brier:      0.211
-training_secs:  300.0
-num_params_M:   1.2
 
-
-1. results.tsv (Tab-Separated)
-
-Log every run:
-commit	val_roi	val_brier	status	description
-
-2. experiment_log.md
-
-After each run, append a short entry:
-
-What was tried: (e.g., "Added rolling pitcher ERA features")
-
-Result: (e.g., "ROI increased by 2%, but Brier score worsened. Model is overconfident.")
-
-Next Step: (e.g., "Try adding temperature scaling to calibrate probabilities.")
-
-The Experiment Loop
-
-Check current git state.
-
-Read experiment_log.md in full before making any changes — it is the primary record of what has been tried and what works.
-
-Edit train.py based on the insights in experiment_log.md.
-
-git commit -m "..."
-
-Run: uv run train.py > run.log 2>&1
-
-Extract val_roi and val_brier. If empty, it's a crash; check tail -n 50 run.log.
-
-Update experiment_log.md immediately after every run (win or loss), appending a new entry with:
-
-- What was tried
-- Result (val_roi, val_brier, n_bets)
-- Whether the commit was kept or reset
-- Next step / hypothesis
-
-This is mandatory — experiment_log.md is a running log of what's working and what isn't. Never skip this step.
-
-Update results.tsv (it is gitignored but written by the script automatically).
-
-Advance or Reset:
-
-If val_roi improved: Keep the commit and continue.
-
-If val_roi stayed same or worsened: git reset --hard HEAD~1 and try a different approach.
-
-NEVER STOP: Continue iterating until manually interrupted. If you hit a plateau in ROI, revisit the feature engineering section in train.py and try adding or modifying features directly (e.g. new diff columns, interaction terms, or adjusting BEST_W and EARLY_SEASON_GAMES).
+### Next Step
+Would you like me to generate the initial content for your **`research_backlog.md`** based on the Hubáček-style decorrelation and ROI strategies we discussed?

@@ -119,6 +119,15 @@
 
 ---
 
+## Run13 (commit a0864fd) — RESET
+**What was tried:** Home/road-specific rolling win% — home team's home win% minus away team's road win% as new feature (28 features total). Threshold=0.04, W=15.
+
+**Result:** val_roi=+1.58%, val_brier=0.240, n_bets=655. Worse than run9. Home/road split adds noise — too few home-only games per window to be reliable.
+
+**Next step:** Remove home/road split. Try momentum feature: short-window (W=5) minus long-window (W=15) win% difference — captures teams on hot/cold streaks.
+
+---
+
 ## Summary of Key Findings
 
 | What works | What doesn't |
