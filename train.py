@@ -7,7 +7,10 @@ import os
 import math
 import time
 import warnings
+
 warnings.filterwarnings('ignore')
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Silences hardware/library info logs
+os.environ['PYTHONWARNINGS'] = 'ignore'   # Silences Python-level warnings
 
 import numpy as np
 import pandas as pd
