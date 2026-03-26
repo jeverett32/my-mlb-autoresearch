@@ -128,8 +128,21 @@
 
 ---
 
-## Run14 — IN PROGRESS
-**Hypothesis:** Momentum feature (W=5 win% - W=15 win%) captures hot/cold streaks not priced by market. Remove home_road_split_DIFF (noisy, too few games per window).
+## Run14 (commit 7e52c91) — VARIANCE DISCOVERED
+**First run:** val_roi=+8.79% (appeared to be new best)
+**Re-run:** val_roi=+0.92%, n_bets=647. HIGH VARIANCE — single-run results unreliable.
+
+**Key insight:** Training is non-deterministic (random mini-batch order + random init). Individual runs have huge ROI variance. Run14 first run was likely lucky.
+
+**Run9 remains the more reliable reference** — but itself was only 1 run.
+
+**Next step:** Try TabTransformer (self-attention) to find feature interactions MLP can't. Major architectural pivot.
+
+---
+
+## Run22 — RESET (dropout=0.1 → worse calibration, too many bets)
+## Run21 — RESET (focal loss → too few bets, -1.5%)
+## Run15-20 — RESET (all feature/loss experiments failed)
 
 ---
 
@@ -137,12 +150,9 @@
 
 | What works | What doesn't |
 |---|---|
-| Market anchor loss (lambda=1.0) | Residual architecture |
-| W=15 rolling window | W≤10 or W≥20 rolling windows |
-| Clean feature set (27 features) | Extra interaction features |
-| Simple 3-layer MLP | Wider/deeper networks |
-| | Dual rolling windows |
-| | Lambda ≠ 1.0 |
+| Market anchor (lambda=1.0) | Feature additions, focal loss |
+| W=15 rolling + W=5 momentum | Sharp weighting, interactions |
+| NOTE: high training variance — results noisy | |
 
-**Current best:** run9 — ROI=+5.09%, Brier=0.240, 819 bets
+**Current best (results.tsv):** run13 ROI=+1.58% (last committed result before run14 variance issue)
 
