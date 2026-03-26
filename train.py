@@ -40,7 +40,7 @@ WARMDOWN_RATIO = 0.4
 FINAL_LR_FRAC = 0.01
 
 # Betting
-CONFIDENCE_THRESHOLD = 0.04   # minimum edge (model_prob - market_implied_prob) to place a bet
+CONFIDENCE_THRESHOLD = 0.05   # minimum edge (model_prob - market_implied_prob) to place a bet
 KELLY_FRACTION = 0.25          # fractional Kelly multiplier
 
 # Market anchoring: pulls model logits toward market logit during training
@@ -561,7 +561,7 @@ if not os.path.exists(results_file):
 
 commit = os.popen("git rev-parse --short HEAD 2>/dev/null").read().strip() or "HEAD"
 status = "ok" if not (roi != roi) else "fail"  # nan check
-desc = f"run9 W={BEST_W} anchor={MARKET_ANCHOR_LAMBDA} threshold={CONFIDENCE_THRESHOLD}"
+desc = f"run12 W={BEST_W} threshold={CONFIDENCE_THRESHOLD} anchor={MARKET_ANCHOR_LAMBDA}"
 row = f"{commit}\t{roi:.6f}\t{brier:.6f}\t{status}\t{desc}\n"
 
 with open(results_file, "a") as f:
