@@ -48,8 +48,3 @@ Before every experiment, you **must**:
 7.  **The Plateau Rule**: If `val_roi` does not improve for 5 consecutive runs, you **must** pivot to a significantly different approach from the `research_backlog.md`.
 
 **NEVER STOP**: Continue iterating indefinitely until manually interrupted.
-
----
-
-### Next Step
-Would you like me to generate the initial content for your **`research_backlog.md`** based on the Hubáček-style decorrelation and ROI strategies we discussed?

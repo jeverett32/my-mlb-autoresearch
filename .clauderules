@@ -1,5 +1,28 @@
-- Always use 'uv run' to execute python scripts.
-- When editing train.py, keep the code PEP8 compliant but prioritize speed of execution.
-- If a run crashes with OOM, immediately suggest a reduction in BATCH_SIZE or HIDDEN_DIMS.
-- You have permission to use 'grep', 'sed', and 'awk' to analyze run.log files quickly.
-- When summarizing results in experiment_log.md, use a table format for clarity.
+# MLB Autoresearch: Behavior & Efficiency Rules
+
+# --- Token Management & Efficiency ---
+- NEVER use 'cat', 'read', or 'open' on 'run.log' or 'master_mlb.csv'. 
+- To check results, use: grep -E "val_roi|val_brier|n_bets" run.log
+- To troubleshoot crashes, use: tail -n 25 run.log
+- Use 'tail -n 1 results.tsv' to verify the current baseline before starting a new run.
+- Be concise. Do not explain standard code changes (e.g., hyperparameter tweaks). Only explain complex logic shifts.
+- Keep 'experiment_log.md' entries extremely concise. Use bullet points for 'What was tried' and 'Next Step'. Do not narrate or use conversational filler.
+- If 'experiment_log.md' exceeds 15 entries, summarize the 'Key Findings' and move the oldest 10 entries to 'experiment_log_archive.md' to preserve context window tokens.
+
+# --- Technical Constraints ---
+- Always use 'uv run' to execute Python scripts (e.g., 'uv run train.py').
+- Respect the 'evaluate()' function in 'train.py' as the immutable ground truth. Do not modify it.
+- When adding features, reference 'data_dictionary.md' to ensure directional consistency (Positive = Home Advantage).
+- If a run crashes with "OOM" or "Out of Memory", immediately suggest reducing BATCH_SIZE or HIDDEN_DIMS.
+- Ensure all new features are properly lagged (Shift+1) to prevent lookahead bias.
+
+# --- Research Protocol ---
+- You MUST follow the 'Thinker Protocol' in 'program.md' before every edit.
+- If ROI does not improve for 5 consecutive runs, you MUST pivot to a major strategy in 'research_backlog.md'.
+- Always record your hypothesis in 'experiment_log.md' BEFORE running the training script.
+- Use 'uv run check_improvement.py' after every run to validate progress against the historical best.
+
+# --- Environment Context ---
+- Operating System: Linux (Ubuntu) via SSH.
+- Primary Metric: val_roi (aiming for positive ROI on the validation set).
+- Secondary Metric: val_brier (aiming for < 0.241 for proper calibration).
