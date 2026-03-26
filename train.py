@@ -33,14 +33,14 @@ DROPOUT = 0.2
 
 # Optimization
 LR = 1e-3
-WEIGHT_DECAY = 1e-4
+WEIGHT_DECAY = 3e-4
 BATCH_SIZE = 512
 WARMUP_RATIO = 0.05
 WARMDOWN_RATIO = 0.4
 FINAL_LR_FRAC = 0.01
 
 # Betting
-CONFIDENCE_THRESHOLD = 0.03   # minimum edge (model_prob - market_implied_prob) to place a bet
+CONFIDENCE_THRESHOLD = 0.04   # minimum edge (model_prob - market_implied_prob) to place a bet
 KELLY_FRACTION = 0.25          # fractional Kelly multiplier
 
 # ---------------------------------------------------------------------------
@@ -60,32 +60,48 @@ PARK_FACTORS = {
 DROP_SUBSTR = {"game_pk", "odds_source", "starter_id"}
 
 FEATURE_COLUMNS = [
+    # Market
     "market_implied_prob",
     "open_home_implied",
     "line_move_delta",
     "sharp_move_flag",
     "total_move_delta",
+    # Pitcher quality
     "sp_fip_DIFF",
+    "sp_era_DIFF",
     "sp_k9_DIFF",
+    "sp_bb9_DIFF",
     "rolling_k9_DIFF",
+    "rolling_era_DIFF",
+    "rolling_whip_DIFF",
+    # Batting
     "wrc_plus_DIFF",
     "woba_DIFF",
     "war_DIFF",
+    "k_pct_DIFF",
+    "bb_pct_DIFF",
+    # Handedness
     "pitcher_handedness_diff",
     "home_pitcher_is_lefty",
     "away_pitcher_is_lefty",
+    # Rolling form
     "win_pct_W_DIFF",
     "run_diff_avg_W_DIFF",
     "runs_scored_avg_W_DIFF",
+    # Weather / venue
     "temp_c",
+    "wind_speed_kmh",
     "wind_dir_sin",
     "wind_dir_cos",
     "park_factor",
     "is_night_game",
+    # Context
     "rest_days_DIFF",
     "sp_rest_DIFF",
     "is_series_finale",
     "early_season_flag",
+    # Interactions
+    "sharp_x_fip",
 ]
 
 
@@ -293,15 +309,25 @@ def load_and_engineer_features():
 
     # Computed diff features
     df_feat["sp_fip_DIFF"]             = _gcol(df_feat, "a_fip_lag1")             - _gcol(df_feat, "h_fip_lag1")
+    df_feat["sp_era_DIFF"]             = _gcol(df_feat, "a_sp_era_lag1")          - _gcol(df_feat, "h_sp_era_lag1")
     df_feat["sp_k9_DIFF"]              = _gcol(df_feat, "h_sp_k9_lag1")           - _gcol(df_feat, "a_sp_k9_lag1")
+    df_feat["sp_bb9_DIFF"]             = _gcol(df_feat, "a_sp_bb9_lag1")          - _gcol(df_feat, "h_sp_bb9_lag1")
     df_feat["rolling_k9_DIFF"]         = _gcol(df_feat, "h_rolling_k9_lag1")      - _gcol(df_feat, "a_rolling_k9_lag1")
+    df_feat["rolling_era_DIFF"]        = _gcol(df_feat, "a_rolling_era_lag1")     - _gcol(df_feat, "h_rolling_era_lag1")
+    df_feat["rolling_whip_DIFF"]       = _gcol(df_feat, "a_rolling_whip_lag1")    - _gcol(df_feat, "h_rolling_whip_lag1")
     df_feat["wrc_plus_DIFF"]           = _gcol(df_feat, "h_wrc_plus_lag1")        - _gcol(df_feat, "a_wrc_plus_lag1")
     df_feat["woba_DIFF"]               = _gcol(df_feat, "h_woba_lag1")            - _gcol(df_feat, "a_woba_lag1")
     df_feat["war_DIFF"]                = _gcol(df_feat, "h_war_lag1")             - _gcol(df_feat, "a_war_lag1")
+    df_feat["k_pct_DIFF"]              = _gcol(df_feat, "a_k_pct_lag1")           - _gcol(df_feat, "h_k_pct_lag1")
+    df_feat["bb_pct_DIFF"]             = _gcol(df_feat, "h_bb_pct_lag1")          - _gcol(df_feat, "a_bb_pct_lag1")
     df_feat["pitcher_handedness_diff"] = _gcol(df_feat, "home_pitcher_is_lefty")  - _gcol(df_feat, "away_pitcher_is_lefty")
     df_feat["win_pct_W_DIFF"]          = _gcol(df_feat, f"h_win_pct_{BEST_W}")   - _gcol(df_feat, f"a_win_pct_{BEST_W}")
     df_feat["run_diff_avg_W_DIFF"]     = _gcol(df_feat, f"h_run_diff_avg_{BEST_W}") - _gcol(df_feat, f"a_run_diff_avg_{BEST_W}")
     df_feat["runs_scored_avg_W_DIFF"]  = _gcol(df_feat, f"h_runs_scored_avg_{BEST_W}") - _gcol(df_feat, f"a_runs_scored_avg_{BEST_W}")
+    # Weather
+    df_feat["wind_speed_kmh"]          = pd.to_numeric(df_feat["wind_speed_kmh"], errors="coerce").fillna(0.0)
+    # Interaction: sharp money aligning with pitcher edge
+    df_feat["sharp_x_fip"]            = df_feat["sharp_move_flag"] * df_feat["sp_fip_DIFF"]
 
     df_feat = df_feat.sort_values("game_date").reset_index(drop=True)
     df_feat["hg"] = df_feat.groupby(["home_team", "season"]).cumcount()
@@ -531,7 +557,7 @@ if not os.path.exists(results_file):
 
 commit = os.popen("git rev-parse --short HEAD 2>/dev/null").read().strip() or "HEAD"
 status = "ok" if not (roi != roi) else "fail"  # nan check
-desc = f"baseline MLP {HIDDEN_DIMS} W={BEST_W} threshold={CONFIDENCE_THRESHOLD}"
+desc = f"MLP more-features era/whip/bb9/kpct threshold={CONFIDENCE_THRESHOLD} wd={WEIGHT_DECAY}"
 row = f"{commit}\t{roi:.6f}\t{brier:.6f}\t{status}\t{desc}\n"
 
 with open(results_file, "a") as f:
