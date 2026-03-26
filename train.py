@@ -43,6 +43,10 @@ FINAL_LR_FRAC = 0.01
 CONFIDENCE_THRESHOLD = 0.04   # minimum edge (model_prob - market_implied_prob) to place a bet
 KELLY_FRACTION = 0.25          # fractional Kelly multiplier
 
+# Market anchoring: pulls model logits toward market logit during training
+# Prevents model from drifting far from market; forces learning of residual edge
+MARKET_ANCHOR_LAMBDA = 1.0
+
 # ---------------------------------------------------------------------------
 # Feature Engineering (ported from feature_engineering.ipynb)
 # ---------------------------------------------------------------------------
@@ -470,6 +474,11 @@ for group in optimizer.param_groups:
 X_t = torch.tensor(X_train_sc, dtype=torch.float32, device=device)
 y_t = torch.tensor(y_train,    dtype=torch.float32, device=device)
 
+# Market anchor: logit(market_implied_prob) for training set
+mkt_train = train_df["market_implied_prob"].clip(1e-4, 1 - 1e-4).values.astype(np.float32)
+mkt_logit_train = np.log(mkt_train / (1.0 - mkt_train))
+mkt_logit_t = torch.tensor(mkt_logit_train, dtype=torch.float32, device=device)
+
 # ---------------------------------------------------------------------------
 # Training loop (time-budgeted)
 # ---------------------------------------------------------------------------
@@ -489,7 +498,9 @@ while True:
     for i in range(0, len(X_t), BATCH_SIZE):
         idx = perm[i:i + BATCH_SIZE]
         logits = model(X_t[idx])
-        loss = F.binary_cross_entropy_with_logits(logits, y_t[idx])
+        bce_loss = F.binary_cross_entropy_with_logits(logits, y_t[idx])
+        anchor_loss = MARKET_ANCHOR_LAMBDA * ((logits - mkt_logit_t[idx]) ** 2).mean()
+        loss = bce_loss + anchor_loss
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
@@ -557,7 +568,7 @@ if not os.path.exists(results_file):
 
 commit = os.popen("git rev-parse --short HEAD 2>/dev/null").read().strip() or "HEAD"
 status = "ok" if not (roi != roi) else "fail"  # nan check
-desc = f"MLP more-features era/whip/bb9/kpct threshold={CONFIDENCE_THRESHOLD} wd={WEIGHT_DECAY}"
+desc = f"run4 market_anchor_lambda={MARKET_ANCHOR_LAMBDA} threshold={CONFIDENCE_THRESHOLD}"
 row = f"{commit}\t{roi:.6f}\t{brier:.6f}\t{status}\t{desc}\n"
 
 with open(results_file, "a") as f:
