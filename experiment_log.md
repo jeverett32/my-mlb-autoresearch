@@ -101,8 +101,10 @@
 
 ---
 
-## Run25 — IN PROGRESS (base: run24)
-- **Hypothesis:** Neutralize against market logit (log-odds) instead of raw probability — more linear neutralization space.
+## Run25 (commit aba69aa) — RESET
+- Neutralize non-market features against market logit instead of raw probability
+- val_roi=+5.38%, val_brier=0.240, n_bets=681
+- **Finding:** Logit-space neutralization is weaker than raw-prob; run24 (raw-prob) is better
 
 ---
 
@@ -116,5 +118,19 @@
 | Feature neutralization (Hubáček) | TabTransformer, focal loss |
 | Clean 28-feature MLP (256,128,64) | Wider/deeper nets, interactions |
 | threshold=0.04, Kelly=0.25 | threshold ≥ 0.05 |
+
+## Run26 — RESET (base: run24)
+- Kelly=0.15 (vs 0.25 baseline)
+- val_roi=+3.11%, val_brier=0.240, n_bets=635
+- **Finding:** Kelly=0.15 worse — likely different stochastic training seed. Kelly=0.25 kept.
+
+---
+
+## Run27 (commit HEAD) ✓ KEPT — INFRASTRUCTURE
+- Fixed random seeds (torch + numpy, seed=42) for deterministic, comparable experiments
+- val_roi=+1.34%, val_brier=0.240, n_bets=673
+- **Finding:** Seed=42 is the new deterministic baseline. All future runs are fair A/B comparisons.
+
+---
 
 **Current best:** Run24 — ROI=+10.41%, Brier=0.2398, 644 bets

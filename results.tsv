@@ -12,3 +12,6 @@ a0864fd	0.015795	0.239972	ok	run13 W=15 threshold=0.04 anchor=1.0 home_road_spli
 7e52c91	0.026787	0.240889	reset	run22 dropout=0.1
 7e52c91	-0.187288	0.241219	reset	run23 TabTransformer
 8533916	0.104126	0.239802	ok	run24 W=15 momentum_W=5 threshold=0.04 anchor=1.0 feat_neutralization
+097d8a6	0.053777	0.240240	ok	run25 W=15 momentum_W=5 threshold=0.04 anchor=1.0 neutralize_logit
+097d8a6	0.031078	0.240125	ok	run26 W=15 momentum_W=5 kelly=0.15 threshold=0.04 anchor=1.0 feat_neutralization
+097d8a6	0.013410	0.240368	ok	run27 seed=42 W=15 momentum_W=5 threshold=0.04 anchor=1.0 feat_neutralization
