@@ -2,3 +2,4 @@ commit	val_roi	val_brier	status	description
 4d586fa	-0.079679	0.240764	ok	run12 W=15 threshold=0.05 anchor=1.0
 a0864fd	0.015795	0.239972	ok	run13 W=15 threshold=0.04 anchor=1.0 home_road_split
 7e52c91	0.009155	0.240188	ok	run14 W=15 momentum_W=5 threshold=0.04 anchor=1.0 momentum_diff
+8533916	0.104126	0.239802	ok	run24 W=15 momentum_W=5 threshold=0.04 anchor=1.0 feat_neutralization
