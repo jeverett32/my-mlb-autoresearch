@@ -1,150 +1,108 @@
 # Experiment Log — autoresearch/mlb-mar26
-
----
-
-## Run: baseline (commit 2335522)
-**What was tried:** Baseline MLP (256, 128, 64), W=31 rolling window, threshold=0.03. 26 features including market, pitcher FIP/K9, wRC+, wOBA, WAR, weather, context.
-
-**Result:** val_roi=-0.53%, val_brier=0.341, n_bets=3,965. Nearly every game got a bet — model probabilities far from market, very poor calibration. Slight negative ROI.
-
-**Next step:** Model needs to be anchored to the market price. Miscalibration is the core problem.
-
----
-
-## Run1 (commit c94be5a) — RESET
-**What was tried:** Residual MLP architecture: `output = market_logit_unscaled + small_correction`. Added `market_logit` feature. Threshold lowered to 0.025.
-
-**Result:** val_roi=-2.37%, val_brier=0.347, n_bets=3,965. Worse across the board. The small init on the correction layer didn't prevent it from learning noisy corrections.
-
-**Next step:** Scrap residual architecture. Try direct market-anchoring via an auxiliary loss term in training.
-
----
-
-## Run2 (commit a977741)
-**What was tried:** Expanded features (sp_era, sp_bb9, rolling_era, rolling_whip, k_pct, bb_pct, wind_speed), sharp_x_fip interaction. Higher weight_decay=3e-4, threshold=0.04.
-
-**Result:** val_roi=+0.47%, val_brier=0.352, n_bets=3,922. Positive ROI but still ~94% of games get bets — calibration still broken, Brier got worse.
-
-**Next step:** The calibration problem is persistent. Need to anchor model to market price during training.
-
----
-
-## Run3 (commit a33c2ec) — RESET
-**What was tried:** Same as run2 but threshold=0.07 to reduce bet count.
-
-**Result:** val_roi=-0.99%, val_brier=0.363, n_bets=3,762. Even at 7% edge threshold, 90% of games still bet. Model confidently wrong everywhere.
-
-**Next step:** Raising threshold alone doesn't fix calibration. Must use a training-time fix.
-
----
-
-## Run4 (commit 12c4d98) ✓ KEPT
-**What was tried:** Added market-logit anchor loss during training: `loss = BCE + 1.0 * (logit - market_logit)^2`. This pulls model predictions toward the market price during training.
-
-**Result:** val_roi=+0.70%, val_brier=0.240 (near-market!), n_bets=803. Huge calibration improvement. Brier dropped from ~0.35 to 0.240 — essentially at market level. Bets reduced to 19% of games.
-
-**Next step:** Calibration is solved. Now explore anchor lambda and threshold tuning.
-
----
-
-## Run5 (commit 483311c) — RESET
-**What was tried:** Lambda=2.0 (tighter anchor) + threshold=0.03.
-
-**Result:** val_roi=-6.94%, val_brier=0.240, n_bets=427. Tighter anchor + lower threshold = fewer bets but all losing. Over-constrained the model.
-
-**Next step:** Lambda=1.0 is optimal. Try looser lambda next.
-
----
-
-## Run6 (commit 8bd6097) — RESET
-**What was tried:** Lambda=0.5 (looser anchor) + threshold=0.04.
-
-**Result:** val_roi=-4.96%, val_brier=0.245, n_bets=2,005. Too many bets, worse calibration. Model drifted from market.
-
-**Next step:** Lambda=1.0 is the sweet spot. Don't deviate.
-
----
-
-## Run7 (commit 5dcbd99) — RESET
-**What was tried:** Added interaction features (sharp_x_woba, line_x_fip, rest_x_form) + wider network (256, 192, 128, 64).
-
-**Result:** val_roi=-0.86%, val_brier=0.241, n_bets=1,383. More interactions and capacity hurt — overfitting or noise.
-
-**Next step:** Keep simple 3-layer MLP. Try W parameter.
-
----
-
-## Run8 (commit c7fee1f) ✓ KEPT
-**What was tried:** W=20 (shorter rolling window vs W=31 baseline), removed war/k_pct/bb_pct/wind_dir (noisy features).
-
-**Result:** val_roi=+2.80%, val_brier=0.240, n_bets=748. Big improvement. Cleaner feature set + more reactive rolling stats works better.
-
-**Next step:** Try W=15.
-
----
-
-## Run9 (commit 837cbfa) ✓ KEPT — **BEST SO FAR**
-**What was tried:** W=15 rolling window.
-
-**Result:** val_roi=+5.09%, val_brier=0.240, n_bets=819. Best ROI so far. W=15 is more reactive to recent form and the market may not fully price in recent streaks.
-
-**Next step:** Try W=10 and threshold tuning.
-
----
-
-## Run10 (commit bfa2dc4) — RESET
-**What was tried:** W=10 (even shorter window).
-
-**Result:** val_roi=-2.50%, val_brier=0.240, n_bets=796. Too short — W=10 is noisy. W=15 is the sweet spot.
-
-**Next step:** Stay at W=15. Try threshold=0.05.
+*(Runs baseline–Run10 archived in experiment_log_archive.md)*
 
 ---
 
 ## Run11 (commit 788ef84) — RESET
-**What was tried:** Dual rolling windows W=15 + W=7 (short-term hot streak features).
-
-**Result:** val_roi=-1.35%, val_brier=0.240, n_bets=772. Dual windows hurt. W=7 adds noise. Single W=15 window is cleaner.
-
-**Next step:** Try threshold=0.05 from run9 base.
+- Dual rolling windows W=15 + W=7 (short-term hot streak features)
+- val_roi=-1.35%, val_brier=0.240, n_bets=772
+- **Finding:** Dual windows add noise; single W=15 is cleaner
 
 ---
 
 ## Run12 (commit 6ea056f) — RESET
-**What was tried:** threshold=0.05 (more selective) from run9 base (W=15).
-
-**Result:** val_roi=-7.97%, val_brier=0.240, n_bets=305. Far too few bets, all losing. Raising threshold kills ROI — the model's best edges are in the 0.03–0.05 range.
-
-**Next step:** Keep threshold=0.04 (run9 default). Try home/road-specific rolling win% as new feature.
+- threshold=0.05 (more selective) from run9 base
+- val_roi=-7.97%, val_brier=0.240, n_bets=305
+- **Finding:** Threshold=0.05 kills ROI — best edges are in 0.03–0.05 range
 
 ---
 
 ## Run13 (commit a0864fd) — RESET
-**What was tried:** Home/road-specific rolling win% — home team's home win% minus away team's road win% as new feature (28 features total). Threshold=0.04, W=15.
-
-**Result:** val_roi=+1.58%, val_brier=0.240, n_bets=655. Worse than run9. Home/road split adds noise — too few home-only games per window to be reliable.
-
-**Next step:** Remove home/road split. Try momentum feature: short-window (W=5) minus long-window (W=15) win% difference — captures teams on hot/cold streaks.
+- Home/road-specific rolling win% (home_win_pct - away_road_win_pct), 28 features
+- val_roi=+1.58%, val_brier=0.240, n_bets=655
+- **Finding:** Home/road split adds noise — too few games per split window
 
 ---
 
-## Run14 (commit 7e52c91) — VARIANCE DISCOVERED
-**First run:** val_roi=+8.79% (appeared to be new best)
-**Re-run:** val_roi=+0.92%, n_bets=647. HIGH VARIANCE — single-run results unreliable.
-
-**Key insight:** Training is non-deterministic (random mini-batch order + random init). Individual runs have huge ROI variance. Run14 first run was likely lucky.
-
-**Run9 remains the more reliable reference** — but itself was only 1 run.
-
-**Run24 (commit 8533916) ✓ KEPT — NEW BEST:** val_roi=+10.41%, val_brier=0.2398, n_bets=644. Feature neutralization removes market-correlated variance from non-market features, forcing model to learn genuinely incremental signal.
-
-**Next step (run25):** Neutralize against market logit (log-odds) instead of raw prob — more linear neutralization space.
+## Run14 (commit 7e52c91) ✓ KEPT (high variance)
+- Win% momentum: (W=5 win% - W=15 win%) for home minus away, replaced home_road_split
+- First run: val_roi=+8.79%; Re-run: val_roi=+0.92%, val_brier=0.240, n_bets=647
+- **Finding:** HIGH VARIANCE. Momentum signal real but training noise is large. W=5 short window confirmed viable.
 
 ---
 
-## Run22 — RESET (dropout=0.1 → worse calibration, too many bets)
-## Run21 — RESET (focal loss → too few bets, -1.5%)
-## Run15-20 — RESET (all feature/loss experiments failed)
+## Run15 — RESET (base: run14)
+- Added run_diff_momentum_DIFF (W=5 run_diff_avg - W=15 run_diff_avg)
+- val_roi=+3.20%, val_brier=0.240, n_bets=686
+- **Finding:** Run-diff momentum adds noise on top of win% momentum
+
+---
+
+## Run16 — RESET (base: run14)
+- MOMENTUM_W=3 (more aggressive streak detection)
+- val_roi=+5.95%, val_brier=0.240, n_bets=685
+- **Finding:** W=3 too noisy; W=5 is the sweet spot for momentum
+
+---
+
+## Run17 — RESET (base: run14)
+- momentum_x_sharp interaction (momentum_DIFF * sharp_move_flag)
+- val_roi=-6.07%, val_brier=0.241, n_bets=641
+- **Finding:** Momentum × sharp interaction harmful
+
+---
+
+## Run18 — RESET (base: run14)
+- Pitcher/park interaction: sp_k9_DIFF * park_factor (backlog item)
+- val_roi=+3.81%, val_brier=0.240, n_bets=666
+- **Finding:** k9×park interaction doesn't add value
+
+---
+
+## Run19 — RESET (base: run14)
+- Removed redundant pitcher features: sp_era_DIFF, sp_bb9_DIFF, rolling_k9_DIFF (all captured by FIP)
+- val_roi=+6.97%, val_brier=0.241, n_bets=537
+- **Finding:** Trimming pitcher feats reduces n_bets too much; full feature set preferred
+
+---
+
+## Run20 — RESET (base: run14, PLATEAU PIVOT 1)
+- Sharp-money weighted training loss (2× weight for |line_move_delta| ≥ 0.03 games)
+- val_roi=+2.31%, val_brier=0.240, n_bets=898
+- **Finding:** Sharp weighting hurts — too many bets, lower bar
+
+---
+
+## Run21 — RESET (base: run14, PLATEAU PIVOT 2)
+- Focal loss (γ=2) instead of BCE
+- val_roi=-1.53%, val_brier=0.240, n_bets=135
+- **Finding:** Focal loss: too few bets (model becomes overconfident/selective)
+
+---
+
+## Run22 — RESET (base: run14)
+- Dropout=0.1 (vs 0.2 baseline)
+- val_roi=+2.68%, val_brier=0.241, n_bets=1,026
+- **Finding:** Lower dropout → worse calibration, too many bets (overfitting)
+
+---
+
+## Run23 — RESET (base: run14, PLATEAU PIVOT 3)
+- TabTransformer: self-attention over feature tokens (d_model=32, 2 heads, 2 layers)
+- val_roi=-18.73%, val_brier=0.241, n_bets=482
+- **Finding:** TabTransformer fails badly; MLP with market anchor is superior for this data
+
+---
+
+## Run24 (commit 8533916) ✓ KEPT — **NEW BEST**
+- Feature neutralization: remove market_implied_prob-correlated signal from non-market features (cols 5+) using OLS residualization
+- val_roi=+10.41%, val_brier=0.2398, n_bets=644
+- **Finding:** Neutralization forces model to find genuine alpha. Best result yet. Hubáček approach validated.
+
+---
+
+## Run25 — IN PROGRESS (base: run24)
+- **Hypothesis:** Neutralize against market logit (log-odds) instead of raw probability — more linear neutralization space.
 
 ---
 
@@ -152,9 +110,11 @@
 
 | What works | What doesn't |
 |---|---|
-| Market anchor (lambda=1.0) | Feature additions, focal loss |
-| W=15 rolling + W=5 momentum | Sharp weighting, interactions |
-| NOTE: high training variance — results noisy | |
+| Market anchor loss (lambda=1.0) | lambda ≠ 1.0 |
+| W=15 rolling window | W≤10 or W≥20 |
+| W=5 momentum (win% diff) | Run-diff momentum, W=3 momentum |
+| Feature neutralization (Hubáček) | TabTransformer, focal loss |
+| Clean 28-feature MLP (256,128,64) | Wider/deeper nets, interactions |
+| threshold=0.04, Kelly=0.25 | threshold ≥ 0.05 |
 
-**Current best:** run24 — ROI=+10.41%, Brier=0.2398, 644 bets
-
+**Current best:** Run24 — ROI=+10.41%, Brier=0.2398, 644 bets

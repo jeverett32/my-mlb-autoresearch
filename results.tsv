@@ -2,4 +2,13 @@ commit	val_roi	val_brier	status	description
 4d586fa	-0.079679	0.240764	ok	run12 W=15 threshold=0.05 anchor=1.0
 a0864fd	0.015795	0.239972	ok	run13 W=15 threshold=0.04 anchor=1.0 home_road_split
 7e52c91	0.009155	0.240188	ok	run14 W=15 momentum_W=5 threshold=0.04 anchor=1.0 momentum_diff
+7e52c91	0.031967	0.240143	reset	run15 +run_diff_momentum_DIFF
+7e52c91	0.059494	0.240278	reset	run16 MOMENTUM_W=3
+7e52c91	-0.060682	0.240873	reset	run17 momentum_x_sharp
+7e52c91	0.038129	0.240113	reset	run18 k9_x_park
+7e52c91	0.069657	0.240592	reset	run19 trim_pitcher_feats
+7e52c91	0.023106	0.240332	reset	run20 sharp_weighted_loss
+7e52c91	-0.015326	0.239516	reset	run21 focal_loss_gamma2
+7e52c91	0.026787	0.240889	reset	run22 dropout=0.1
+7e52c91	-0.187288	0.241219	reset	run23 TabTransformer
 8533916	0.104126	0.239802	ok	run24 W=15 momentum_W=5 threshold=0.04 anchor=1.0 feat_neutralization
