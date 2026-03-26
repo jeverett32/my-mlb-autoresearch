@@ -81,7 +81,9 @@ The Experiment Loop
 
 Check current git state.
 
-Edit train.py based on the previous entries in experiment_log.md.
+Read experiment_log.md in full before making any changes — it is the primary record of what has been tried and what works.
+
+Edit train.py based on the insights in experiment_log.md.
 
 git commit -m "..."
 
@@ -89,7 +91,16 @@ Run: uv run train.py > run.log 2>&1
 
 Extract val_roi and val_brier. If empty, it's a crash; check tail -n 50 run.log.
 
-Update results.tsv and experiment_log.md.
+Update experiment_log.md immediately after every run (win or loss), appending a new entry with:
+
+- What was tried
+- Result (val_roi, val_brier, n_bets)
+- Whether the commit was kept or reset
+- Next step / hypothesis
+
+This is mandatory — experiment_log.md is a running log of what's working and what isn't. Never skip this step.
+
+Update results.tsv (it is gitignored but written by the script automatically).
 
 Advance or Reset:
 
