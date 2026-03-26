@@ -133,4 +133,18 @@
 
 ---
 
-**Current best:** Run24 — ROI=+10.41%, Brier=0.2398, 644 bets
+## Run28 — RESET (base: run27)
+- Selective neutralization: neutralize only structural features (pitcher/batting/weather), skip rolling-form + momentum
+- val_roi=-2.48%, val_brier=0.241, n_bets=647
+- **Finding:** Rolling-form features NEED neutralization. Full neutralization (run27) is better.
+
+---
+
+## Run29 — RESET (base: run27)
+- 2-factor OLS neutralization: remove [market_implied_prob, open_home_implied] from non-market features
+- val_roi=-2.85%, val_brier=0.241, n_bets=645
+- **Finding:** 2-factor neutralization worse — adding open_home_implied over-neutralizes, removes valid signal
+
+---
+
+**Current best:** Run27 (seed=42) — ROI=+1.34%, Brier=0.240, 673 bets
