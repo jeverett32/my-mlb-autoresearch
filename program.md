@@ -1,50 +1,144 @@
 # autoresearch: MLB Kalshi Betting Edition
+An autonomous experiment loop to maximize walk-forward ROI on MLB home/away Kalshi contracts.
 
-This is an autonomous experiment to optimize a model for predicting high-ROI MLB bets on Kalshi.
+---
 
 ## Setup
+1. **Agree on a run tag** based on today's date (e.g., `mlb-mar26`). If the branch exists, check it out.
+2. **Create the branch**: `git checkout -b autoresearch/<tag>` from master.
+3. **Read context** (in this order):
+   - `experiment_log.md` + `experiment_log_archive.md` — history; read before every run
+   - `train.py` — the only file you modify
+   - `research_backlog.md` — what to try next
+   - `feature_engineering.md` — screening rules for new features
+   - `data_dictionary.md` — directional definitions for all features
+4. **Initialize `results.tsv`** with header: `commit  val_roi  val_brier  status  description`
+5. **Initialize `experiment_log.md`** if empty.
 
-1.  **Agree on a run tag**: Propose a tag based on today's date (e.g., `mlb-mar26`). If the run tag already exists, enter that branch because it is the same day.
-2.  **Create the branch**: `git checkout -b autoresearch/<tag>` from master.
-3.  **Read context**:
-    * `master_mlb.csv`: The core dataset.
-    * `train.py`: The file you modify. It contains the full pipeline: feature engineering, model architecture, training loop, and the `evaluate()` function.
-    * `research_backlog.md`: A list of high-level strategic ideas and advanced features to implement.
-4.  **Initialize results.tsv**: Create `results.tsv` (tab-separated) with the header:
-    `commit	val_roi	val_brier	status	description`
-5.  **Initialize experiment_log.md**: Create this file to track qualitative insights and hypotheses.
+---
 
-## Experimentation
+## The Model
 
-Each run has a **5-minute wall clock budget** for training. Launch with: `uv run train.py`.
+`train.py` is a **multi-model, walk-forward system with an early-season specialist**. Only modify the designated sections.
 
-### What you CAN do:
-* **Modify `train.py`**: You are encouraged to experiment with architectures (MLP, XGBoost, Transformers), feature selection, decorrelation techniques, and betting logic (thresholds, Kelly sizing).
-* **Consult the Backlog**: Use `research_backlog.md` for inspiration when you need a new direction.
+### What you can change
 
-### What you CANNOT do:
-* **Modify the evaluation metric**: The `evaluate()` function in `train.py` is the ground truth. Do not change it.
-* **Install new packages**: Use only what is provided in `pyproject.toml`.
+| Section | Variable / Function | What to do |
+|---|---|---|
+| Model selection | `MODEL` | `"lgb"`, `"xgb"`, `"lr"`, `"mlp"`, `"ensemble_avg"`, `"ensemble_stack"` |
+| Regular features | `FEATURE_COLUMNS` | Add/remove names. Only names present in the DataFrame are used. |
+| Early specialist features | `EARLY_FEATURE_COLUMNS` | Features for the early-season LR (< EARLY_CUTOFF games). Keep to pitcher + market + context. |
+| New feature engineering | `engineer_new_features(df)` | Add computed columns here. Document in `data_dictionary.md` Section 9. |
+| Model hyperparameters | `LGB_PARAMS`, `XGB_PARAMS`, `LR_PARAMS`, `MLP_*` | Tune per-model. |
+| Rolling windows | `BEST_W`, `MOMENTUM_W` | Change window lengths. |
+| Early specialist threshold | `EARLY_CUTOFF` | Games-played cutoff; set to `None` to disable the specialist entirely. |
+| Betting logic | `CONFIDENCE_THRESHOLD`, `KELLY_FRACTION`, `MAX_BET_FRAC`, `PROB_CAP` | Betting parameters. |
+| Walk-forward folds | `WALK_FORWARD_FOLDS` | Add/remove folds or shift dates. |
+| Calibration | `CALIBRATE` | Toggle isotonic post-hoc calibration for GBDT/MLP. |
 
-## The "Thinker" Protocol
+### What you must NOT change
+- `evaluate()` — immutable ground truth
+- `run_walk_forward()` — immutable engine (fold *values* in `WALK_FORWARD_FOLDS` are fine to change)
+- `master_mlb.csv`
 
-Before every experiment, you **must**:
-1.  Read `experiment_log.md` to identify failed patterns and avoid repetition.
-2.  Consult `research_backlog.md` and follow the procedures in `feature_engineering.md` to determine if the next step should be adding a new signal or pruning an old one.
-3.  Formulate a **hypothesis** (e.g., "The model ignores travel fatigue; adding a rest-diff interaction term should improve ROI").
-4.  Record this hypothesis in `experiment_log.md` **before** running the code.
+---
+
+## The Thinker Protocol
+Before every experiment:
+1. Read `experiment_log.md` — identify failed patterns. Do not repeat them.
+2. Read `research_backlog.md` — check for Phase 1 items first.
+3. Write a **falsifiable hypothesis** in `experiment_log.md` **before** editing `train.py`.
+   > *"LightGBM should outperform LR walk-forward because it handles non-linear FG stat interactions and imputes NaN natively, giving it more training rows."*
+
+---
 
 ## The Experiment Loop
 
-1.  **Hypothesize**: Follow the "Thinker Protocol."
-2.  **Edit**: Modify `train.py` based on your hypothesis.
-3.  **Run**: `uv run train.py > run.log 2>&1`
-4.  **Compare**: Execute `uv run check_improvement.py`.
-5.  **Log**: Update `experiment_log.md` with results (`val_roi`, `val_brier`, `n_bets`). 
-    * *Crucial*: Log the result **before** committing or resetting so the record is permanent.
-6.  **Advance or Reset**:
-    * **If ROI improved**: `git add .` and `git commit -m "KEPT: [Hypothesis Name] - ROI: [Value]"`
-    * **If ROI stayed same or worsened**: Revert ONLY the code using `git checkout HEAD -- train.py`. Do NOT use `reset --hard`.
-7.  **The Plateau Rule**: If `val_roi` does not improve for 5 consecutive runs, pivot to a major strategy in `research_backlog.md`.
+```
+1. Hypothesize  →  Thinker Protocol
+2. Edit         →  Modify train.py
+3. Run          →  uv run train.py > run.log 2>&1
+4. Compare      →  uv run check_improvement.py
+5. Log          →  Append to experiment_log.md (BEFORE any git action)
+6. Advance or Reset:
+     ROI improved   → git add . && git commit -m "KEPT: [Hypothesis] ROI=[value]"
+     ROI same/worse → git checkout HEAD -- train.py
+7. Repeat
+```
 
-**NEVER STOP**: Continue iterating indefinitely until manually interrupted.
+**Never stop.**
+
+---
+
+## Model Strategy Guide
+
+### Phase 1 — Model Baselines (run once each, default 43-feature set)
+Establish walk-forward ROI for each model. Run in order:
+
+`lr` → `lgb` → `xgb` → `ensemble_avg` → `ensemble_stack`
+
+The best single result is the **floor** for all future experiments.
+
+Important: MLP-era single-split ROI (~+1% to +10%) is NOT comparable to walk-forward mean ROI. Expect the scale to differ. Treat all MLP-era numbers as prior intuitions only.
+
+### Phase 2 — Feature Engineering
+Once baselines are set:
+
+**A. Read LGB feature importances** (auto-printed on last fold). Cross-reference with `feature_engineering.md` Phase 1 screening. The 43-feature set is a fresh slate — let GBDT permutation importance drive pruning decisions, not MLP-era Pearson correlations.
+
+**B. Add seeded interactions** from `engineer_new_features()`. Each candidate must pass `feature_engineering.md` Phase 1 screening (|r| > 0.003, redundancy < 0.90) before a training run.
+
+**C. Rolling window tuning** — MLP-era established W=15 as optimal, but that was under a single split. Re-validate under walk-forward: try W in {10, 15, 20}.
+
+**D. Calendar features** — `month` and `days_since_asb` are new. If LGB importance shows them near-zero, prune them.
+
+**E. Early specialist tuning** — try `EARLY_CUTOFF` in {10, 15, 20} or `None`. A smaller cutoff means fewer games go to the specialist (which may be undertrained).
+
+### Phase 3 — Architecture & Hyperparameters
+If feature engineering stalls:
+- Tune LGB: `num_leaves=15`, halve `learning_rate`
+- Tune XGB: `max_depth=3`
+- Try `ensemble_stack` — the disagreement meta-feature (stats_prob − market_prob) is the key signal from the notebook's two-stage model
+- `MODEL="mlp"` lowest priority
+
+### Phase 4 — Calibration & Betting Logic
+- Toggle `CALIBRATE` — LR already calibrates via CalibratedClassifierCV; toggling affects GBDT/MLP
+- Try `CONFIDENCE_THRESHOLD` in {0.02, 0.03, 0.05}
+- Try `EARLY_CUTOFF=None` to test if the specialist helps or hurts overall ROI
+- Try dynamic threshold (see `research_backlog.md`)
+
+### Phase 5 — Walk-Forward Tuning
+- Add 2025 fold if data available
+- Shrink to half-season folds if fold variance > 10pp
+
+---
+
+## The Plateau Rule
+5 consecutive runs without ROI improvement:
+1. Log "PLATEAU REACHED" in `experiment_log.md`
+2. Move to the next phase
+3. If all phases exhausted: reset `FEATURE_COLUMNS` to 43-feature set and try the next untested model
+
+---
+
+## experiment_log.md Format
+```markdown
+## Run [N] — [short description]
+**Hypothesis**: one sentence
+**Change**: what was modified
+**Result**: roi=X, brier=Y, n_bets=Z (N-fold mean)
+**Decision**: KEPT / REVERTED
+**Insight**: one sentence
+```
+
+---
+
+## Key Reminders
+- **Walk-forward mean ROI is the only valid metric.** Single-fold ROI is not trustworthy.
+- High ROI + high Brier → check for data leakage immediately.
+- Low Brier + negative ROI → calibrated market parrot; raise threshold or reduce market features.
+- GBDTs handle NaN natively — do not pre-impute before `build_lgb()` or `build_xgb()`.
+- LR and MLP have `SimpleImputer` built in — do not pre-impute for those either.
+- `engineer_new_features()` runs after all lag/rolling/FanGraphs features — the full lagged dataset is available.
+- The early specialist uses `EARLY_FEATURE_COLUMNS`, not `FEATURE_COLUMNS`. Features only in the early set don't need to be in the regular set.
+- MLP-era history is in `experiment_log_archive.md`. Read it before claiming something hasn't been tried.

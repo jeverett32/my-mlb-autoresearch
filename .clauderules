@@ -1,39 +1,44 @@
 # MLB Autoresearch: Behavior & Efficiency Rules
 
 # --- Token Management & Efficiency ---
-- NEVER use 'cat', 'read', or 'open' on 'run.log' or 'master_mlb.csv'. 
-- To check results, use: grep -E "val_roi|val_brier|n_bets" run.log
-- To troubleshoot crashes, use: tail -n 25 run.log
+- NEVER use 'cat', 'read', or 'open' on 'run.log' or 'master_mlb.csv'.
+- To check results: grep -E "val_roi|val_brier|n_bets|Mean ROI|Mean Brier|Fold [0-9]" run.log
+- To troubleshoot crashes: tail -n 30 run.log
 - Use 'tail -n 1 results.tsv' to verify the current baseline before starting a new run.
-- Be concise. Do not explain standard code changes (e.g., hyperparameter tweaks). Only explain complex logic shifts.
-- Keep 'experiment_log.md' entries extremely concise. Use bullet points for 'What was tried' and 'Next Step'. Do not narrate or use conversational filler.
-- If 'experiment_log.md' exceeds 15 total entries, summarize the 'Key Findings' and move the oldest 10 entries to 'experiment_log_archive.md' to preserve context window tokens.
-- Every 10 entries after the initial move, move the oldest 10 entries to 'experiment_log_archive.md'. This way we keep between 5-15 entries in our log.
+- Be concise. Do not explain standard hyperparameter tweaks. Only explain complex logic shifts.
+- Keep experiment_log.md entries extremely concise. Use the prescribed format in program.md.
+- If experiment_log.md exceeds 15 entries, summarize Key Findings and move oldest 10 to experiment_log_archive.md.
+- Every 10 entries after the initial move, move the oldest 10 to archive. Keep 5–15 entries live.
 
 # --- Technical Constraints ---
-- Always use 'uv run' to execute Python scripts (e.g., 'uv run train.py').
-- Respect the 'evaluate()' function in 'train.py' as the immutable ground truth. Do not modify it.
-- When adding features, reference 'data_dictionary.md' to ensure directional consistency (Positive = Home Advantage).
-- If a run crashes with "OOM" or "Out of Memory", immediately suggest reducing BATCH_SIZE or HIDDEN_DIMS.
-- Ensure all new features are properly lagged (Shift+1) to prevent lookahead bias.
+- Always use 'uv run' to execute Python scripts.
+- evaluate() in train.py is immutable ground truth. Do not modify it.
+- run_walk_forward() in train.py is immutable. You may change WALK_FORWARD_FOLDS values, not the engine.
+- When adding features, reference data_dictionary.md to ensure directional consistency (Positive = Home Advantage).
+- All new features added in engineer_new_features() must use only upstream-lagged columns. Check feature_engineering.md Phase 1 before training.
+- GBDTs (lgb, xgb) handle NaN natively — do NOT impute before passing to build_lgb() or build_xgb().
+- LR and MLP have SimpleImputer built in — do NOT pre-impute for them either.
+- If a run crashes with OOM: reduce LGB/XGB n_estimators first.
+- val_roi in results.tsv is the WALK-FORWARD MEAN ROI. MLP-era single-split ROI is NOT comparable.
 
 # --- Research Protocol ---
-- You MUST follow the 'Thinker Protocol' in 'program.md' before every edit.
-- If ROI does not improve for 5 consecutive runs, you MUST pivot to a major strategy in 'research_backlog.md'.
-- Always record your hypothesis in 'experiment_log.md' BEFORE running the training script.
-- Use 'uv run check_improvement.py' after every run to validate progress against the historical best.
+- Follow the Thinker Protocol in program.md before every edit.
+- If ROI does not improve for 5 consecutive runs, pivot to the next phase in program.md.
+- Record hypothesis in experiment_log.md BEFORE running the training script.
+- Run 'uv run check_improvement.py' after every run.
 
 # --- Environment Context ---
-- Operating System: Linux (Ubuntu) via SSH.
-- Primary Metric: val_roi (aiming for positive ROI on the validation set).
-- Secondary Metric: val_brier (aiming for < 0.241 for proper calibration).
+- OS: Linux (Ubuntu) via SSH.
+- Primary Metric: val_roi (walk-forward mean across all folds).
+- Secondary Metric: val_brier (< 0.241 = properly calibrated).
+- MLP-era single-split ROI and walk-forward mean ROI are NOT on the same scale.
 
 # --- Code Hygiene ---
-- Use descriptive variable names but avoid redundant comments.
-- Delete any 'dead code' or commented-out experiments from previous failed runs immediately.
-- Do not add print statements for debugging that stay in the final commit; use the existing logging structure.
+- Delete dead code from failed runs immediately.
+- No debug print statements in final commits.
+- New features added to engineer_new_features() must also be documented in data_dictionary.md Section 8 before committing.
+- EARLY_FEATURE_COLUMNS is a separate list for the early-season specialist. Features used there do NOT need to be in FEATURE_COLUMNS.
 
-# --- Advanced Git Recovery ---
-- NEVER use 'git reset --hard' if it would delete 'experiment_log.md' or 'results.tsv'.
-- To revert a failed experiment, use: git checkout HEAD~1 -- train.py
-- This ensures your memory (logs) stays intact while the code reverts to the last known 'KEPT' state.
+# --- Git Recovery ---
+- NEVER use 'git reset --hard' if it would delete experiment_log.md or results.tsv.
+- To revert a failed experiment: git checkout HEAD -- train.py

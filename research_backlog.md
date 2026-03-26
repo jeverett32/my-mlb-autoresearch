@@ -1,46 +1,76 @@
-# MLB Research Backlog: Ideas to Explore
+# MLB Research Backlog
 
-This document serves as the strategic menu for the Autoresearch agent. When the model hits a plateau or needs a new hypothesis, it should pull from these categories.
+Status tags: `[QUEUED]` | `[RETRY]` — tried under MLP, retest under GBDT walk-forward | `[INVALIDATED]` — do not retry without new rationale
 
-## 1. Feature Engineering & Signal Extraction
-* **Travel & Fatigue (Rest-Diff)**: 
-    * *Hypothesis*: Teams on the road for long stretches with fewer rest days underperform their baseline.
-    * *Implementation*: `home_rest - away_rest`. Also consider a `road_trip_duration` counter.
-* **Pitcher/Park Interaction**:
-    * *Hypothesis*: High-strikeout pitchers (K/9) are less affected by "hitters' parks" (high park factors) than contact pitchers.
-    * *Implementation*: Create an interaction term: `sp_k9_DIFF * park_factor`.
-* **The "Opener" Correction**:
-    * *Hypothesis*: Starting pitcher stats are misleading when a team uses an "opener."
-    * *Implementation*: Add a binary flag `is_opener` if `sp_gs_lag1` (games started) is significantly lower than appearances.
-* **Weather Sensitivities**:
-    * *Hypothesis*: High temperatures (`temp_c`) and wind blowing out (`wind_dir_cos`) increase run environments, favoring the team with the higher `wrc_plus`.
-    * *Implementation*: `temp_c * wrc_plus_DIFF`.
+---
 
-## 2. Market Decorrelation (Hubáček-style)
-* **Residual Loss Head**:
-    * *Hypothesis*: The market is highly efficient; the model should only learn what the market *doesn't* know.
-    * *Implementation*: Modify the loss function to penalize predictions that are too close to `market_implied_prob` unless they are correct, or explicitly train on the residual `home_win - market_implied_prob`.
-* **Market Price Volatility**:
-    * *Hypothesis*: Large moves between `open_home_implied` and `market_implied_prob` signal "sharp" money that the model should either follow or contrarian-fade.
-    * *Implementation*: Use `line_move_delta` as a weighting factor in the loss function.
+## 1. Feature Engineering
 
-## 3. Architectural Shifts
-* **XGBoost/LightGBM Pivot**:
-    * *Strategy*: If Neural Nets are failing to find non-linearities, switch to Gradient Boosted Decision Trees (GBDT).
-    * *Goal*: Use `val_roi` as the evaluation metric for early stopping rather than log-loss.
-* **Self-Attention / TabTransformer**:
-    * *Strategy*: Replace the middle MLP layers with a Multi-Head Attention block.
-    * *Goal*: Allow the model to learn complex interactions between categorical features (like `park_factor` and `pitcher_handedness`) that fixed dense layers might miss.
-* **Feature Neutralization**:
-    * *Strategy*: Explicitly "neutralize" features that are already heavily baked into the market price to force the model to find alternative signals.
+### Already in train.py (new additions vs MLP era)
+- `[ACTIVE]` `month`, `days_since_asb` — calendar context
+- `[ACTIVE]` `streak_DIFF` — win/loss streak signal
+- `[ACTIVE]` `season_win_pct_DIFF`, `season_run_diff_avg_DIFF` — expanding season mean
+- `[ACTIVE]` `run_diff_std_W_DIFF` — team consistency (variance of run margin)
+- `[ACTIVE]` `runs_allowed_avg_W_DIFF` — pitching side of rolling form
+- `[ACTIVE]` `sp_whip_DIFF`, `rolling_era_DIFF`, `rolling_whip_DIFF` — more pitcher signals
+- `[ACTIVE]` `rookie_DIFF` — pitcher experience flag
+- `[ACTIVE]` Full FanGraphs batting set: `avg_DIFF`, `obp_DIFF`, `slg_DIFF`, `k_pct_DIFF`, `bb_pct_DIFF`, `k_per_9_DIFF`, `bb_per_9_DIFF`, `hr_per_9_DIFF`, `era_DIFF`, `fip_DIFF`, `owar_DIFF`
+- `[ACTIVE]` `wind_dir_sin`, `wind_dir_cos` — circular wind encoding replacing raw degrees
+- `[ACTIVE]` `home_rest_days`, `away_rest_days` — individual rest signals (not just diff)
+- `[ACTIVE]` Early season specialist (EARLY_CUTOFF=15, separate LR)
+
+### Seeded in engineer_new_features() — screen before adding to FEATURE_COLUMNS
+- `[QUEUED]` `fip_x_line` — sharp money + FIP edge synergy
+- `[QUEUED]` `form_x_fip` — hot team + good SP compounding
+- `[QUEUED]` `temp_x_wrc` — heat amplifies batting quality gap
+- `[QUEUED]` `woba_x_sharp` — sharp money + batting edge synergy
+- `[QUEUED]` `early_x_fip` — FIP reliability drops early in season
+
+### Additional candidates
+- `[QUEUED]` **Opener flag** (`is_opener`): 1 if SP career_starts/appearances ratio suggests opener. Requires `sp_gs_lag1` in CSV.
+- `[QUEUED]` **Road trip duration**: Consecutive away games counter for away team.
+- `[QUEUED]` **abs(line_move_delta)**: Market volatility independent of direction.
+- `[RETRY]` **Park-factor interactions**: MLP-era collinearity (r>0.99, park_factor std≈0.04). GBDTs may extract non-linear signal — check LGB importance first.
+
+---
+
+## 2. Market Decorrelation
+
+- `[ACTIVE]` `ensemble_stack` includes disagreement (stats_prob − market_prob) as meta-feature — cleaner version of the notebook's two-stage model.
+- `[INVALIDATED]` Residual MLP (run1), sharp-weighted loss (run20).
+- `[QUEUED]` **Two-stage LR only**: Train LR without `market_implied_prob`, blend with market in meta-LR. Test via `ensemble_stack` with only LR as base model.
+
+---
+
+## 3. Architectural Experiments
+
+- `[QUEUED]` `MODEL="lr"` — Phase 1 baseline
+- `[QUEUED]` `MODEL="lgb"` — Phase 1 baseline
+- `[QUEUED]` `MODEL="xgb"` — Phase 1 baseline
+- `[QUEUED]` `MODEL="ensemble_avg"` — Phase 1 baseline
+- `[QUEUED]` `MODEL="ensemble_stack"` — Phase 1 baseline
+- `[RETRY]` `MODEL="mlp"` — lowest priority; MLP-era history suggests GBDTs dominate
+- `[INVALIDATED]` TabTransformer (run23), focal loss (run21), wider MLP (run7)
+
+### GBDT tuning (Phase 3)
+- `[QUEUED]` LGB: try `num_leaves=15`, halve `learning_rate` with more `n_estimators`
+- `[QUEUED]` XGB: try `max_depth=3`
+- `[QUEUED]` LR: try `penalty="l1"` (SAGA solver) for automatic feature selection
+
+---
 
 ## 4. Betting Logic & Calibration
-* **Dynamic Confidence Threshold ($\phi$)**:
-    * *Hypothesis*: A static 0.025 edge is too rigid. 
-    * *Implementation*: Scale $\phi$ based on `market_implied_prob`. (e.g., require a larger edge for heavy favorites vs. even-money games).
-* **Platt Scaling / Isotonic Regression**:
-    * *Hypothesis*: Raw sigmoid outputs are often over/under confident.
-    * *Implementation*: Add a post-processing calibration step to the `evaluate()` pipeline to ensure `val_brier` is minimized before calculating ROI.
-* **Kelly Fraction Optimization**:
-    * *Hypothesis*: 0.25 Kelly might be too aggressive for the high variance of MLB.
-    * *Implementation*: Test `0.1 Kelly` (Deci-Kelly) vs `Flat 1%` of bankroll to see which preserves capital during "cold streaks" while maintaining ROI.
+
+- `[QUEUED]` `CALIBRATE=False` — test whether isotonic helps or hurts each model
+- `[QUEUED]` `EARLY_CUTOFF=None` — test disabling specialist (all games → regular model)
+- `[QUEUED]` `CONFIDENCE_THRESHOLD` in {0.02, 0.03, 0.05} — MLP best was 0.04
+- `[QUEUED]` `KELLY_FRACTION` in {0.15, 0.20} — MLP best was 0.25
+- `[QUEUED]` **Dynamic threshold**: `BASE + 0.02 * abs(market_implied_prob - 0.5)`
+- `[INVALIDATED]` Kelly=0.15 (run26), threshold=0.05 (run12)
+
+---
+
+## 5. Walk-Forward Configuration
+
+- `[QUEUED]` 4th fold: `("2025-01-01", "2025-01-01", "2026-01-01")` if 2025 data in CSV
+- `[QUEUED]` Half-season folds if fold-to-fold ROI variance > 10pp
