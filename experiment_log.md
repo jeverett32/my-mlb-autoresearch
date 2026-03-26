@@ -128,6 +128,11 @@
 
 ---
 
+## Run14 — IN PROGRESS
+**Hypothesis:** Momentum feature (W=5 win% - W=15 win%) captures hot/cold streaks not priced by market. Remove home_road_split_DIFF (noisy, too few games per window).
+
+---
+
 ## Summary of Key Findings
 
 | What works | What doesn't |

@@ -28,6 +28,7 @@ CSV_INPUT_PATH = "master_mlb.csv"
 
 # Feature engineering
 BEST_W = 15              # rolling window for win%, run-diff, runs-scored averages
+MOMENTUM_W = 5           # short window for momentum feature (W=5 minus W=15 win%)
 EARLY_SEASON_GAMES = 15  # games before this index are flagged as early-season
 
 # Model architecture
@@ -107,8 +108,8 @@ FEATURE_COLUMNS = [
     "early_season_flag",
     # Interactions
     "sharp_x_fip",
-    # Home/road split
-    "home_road_split_DIFF",
+    # Momentum: short-window minus long-window win% (hot/cold streak signal)
+    "momentum_DIFF",
 ]
 
 
@@ -274,7 +275,7 @@ def shift_team_perf(df):
 
 
 def add_rolling_form(long_games, W):
-    """Add W-game rolling win%, run-diff avg, runs-scored avg, and home/road-specific win%."""
+    """Add W-game rolling win%, run-diff avg, and runs-scored avg."""
     g = long_games.sort_values(["team", "season", "game_date", "game_id"]).copy()
 
     def rmean(ser, window):
@@ -288,21 +289,9 @@ def add_rolling_form(long_games, W):
     g[f"runs_scored_avg_{W}"] = g.groupby(["team", "season"], sort=False)["runs_for"].transform(
         lambda s: rmean(s, W))
 
-    # Home-specific rolling win% (only over each team's home games)
     mask_home = g["is_home"] == 1
     mask_away = g["is_home"] == 0
-    g.loc[mask_home, f"home_win_pct_{W}"] = (
-        g[mask_home].groupby(["team", "season"], sort=False)["win"]
-        .transform(lambda s: rmean(s, W))
-    )
-    # Road-specific rolling win% (only over each team's away games)
-    g.loc[mask_away, f"road_win_pct_{W}"] = (
-        g[mask_away].groupby(["team", "season"], sort=False)["win"]
-        .transform(lambda s: rmean(s, W))
-    )
-
-    roll_cols = [f"win_pct_{W}", f"run_diff_avg_{W}", f"runs_scored_avg_{W}",
-                 f"home_win_pct_{W}", f"road_win_pct_{W}"]
+    roll_cols = [f"win_pct_{W}", f"run_diff_avg_{W}", f"runs_scored_avg_{W}"]
     hm = g[mask_home][["game_id"] + roll_cols].rename(
         columns={c: f"h_{c}" for c in roll_cols})
     aw = g[mask_away][["game_id"] + roll_cols].rename(
@@ -324,9 +313,12 @@ def load_and_engineer_features():
     print("Lagging team performance stats...")
     df_shift, long_games = shift_team_perf(df)
 
-    print(f"Adding rolling form (W={BEST_W})...")
+    print(f"Adding rolling form (W={BEST_W}, W={MOMENTUM_W})...")
     roll_merge = add_rolling_form(long_games, BEST_W)
+    roll_short = add_rolling_form(long_games, MOMENTUM_W)
     df_feat = df_shift.merge(roll_merge, on="game_id", how="left")
+    df_feat = df_feat.merge(roll_short[["game_id", f"h_win_pct_{MOMENTUM_W}", f"a_win_pct_{MOMENTUM_W}"]],
+                            on="game_id", how="left")
 
     # Computed diff features
     df_feat["sp_fip_DIFF"]             = _gcol(df_feat, "a_fip_lag1")             - _gcol(df_feat, "h_fip_lag1")
@@ -349,8 +341,10 @@ def load_and_engineer_features():
     df_feat["wind_speed_kmh"]          = pd.to_numeric(df_feat["wind_speed_kmh"], errors="coerce").fillna(0.0)
     # Interaction: sharp money aligning with pitcher edge
     df_feat["sharp_x_fip"]            = df_feat["sharp_move_flag"] * df_feat["sp_fip_DIFF"]
-    # Home/road split: home team's home win% minus away team's road win%
-    df_feat["home_road_split_DIFF"]   = _gcol(df_feat, f"h_home_win_pct_{BEST_W}") - _gcol(df_feat, f"a_road_win_pct_{BEST_W}")
+    # Momentum: (W=5 win% - W=15 win%) for home minus same for away — hot/cold streak signal
+    h_momentum = _gcol(df_feat, f"h_win_pct_{MOMENTUM_W}") - _gcol(df_feat, f"h_win_pct_{BEST_W}")
+    a_momentum = _gcol(df_feat, f"a_win_pct_{MOMENTUM_W}") - _gcol(df_feat, f"a_win_pct_{BEST_W}")
+    df_feat["momentum_DIFF"]          = h_momentum - a_momentum
 
     df_feat = df_feat.sort_values("game_date").reset_index(drop=True)
     df_feat["hg"] = df_feat.groupby(["home_team", "season"]).cumcount()
@@ -587,7 +581,7 @@ if not os.path.exists(results_file):
 
 commit = os.popen("git rev-parse --short HEAD 2>/dev/null").read().strip() or "HEAD"
 status = "ok" if not (roi != roi) else "fail"  # nan check
-desc = f"run13 W={BEST_W} threshold={CONFIDENCE_THRESHOLD} anchor={MARKET_ANCHOR_LAMBDA} home_road_split"
+desc = f"run14 W={BEST_W} momentum_W={MOMENTUM_W} threshold={CONFIDENCE_THRESHOLD} anchor={MARKET_ANCHOR_LAMBDA} momentum_diff"
 row = f"{commit}\t{roi:.6f}\t{brier:.6f}\t{status}\t{desc}\n"
 
 with open(results_file, "a") as f:
