@@ -110,6 +110,15 @@
 
 ---
 
+## Run12 (commit 6ea056f) — RESET
+**What was tried:** threshold=0.05 (more selective) from run9 base (W=15).
+
+**Result:** val_roi=-7.97%, val_brier=0.240, n_bets=305. Far too few bets, all losing. Raising threshold kills ROI — the model's best edges are in the 0.03–0.05 range.
+
+**Next step:** Keep threshold=0.04 (run9 default). Try home/road-specific rolling win% as new feature.
+
+---
+
 ## Summary of Key Findings
 
 | What works | What doesn't |

@@ -40,7 +40,7 @@ WARMDOWN_RATIO = 0.4
 FINAL_LR_FRAC = 0.01
 
 # Betting
-CONFIDENCE_THRESHOLD = 0.05   # minimum edge (model_prob - market_implied_prob) to place a bet
+CONFIDENCE_THRESHOLD = 0.04   # minimum edge (model_prob - market_implied_prob) to place a bet
 KELLY_FRACTION = 0.25          # fractional Kelly multiplier
 
 # Market anchoring: pulls model logits toward market logit during training
@@ -99,6 +99,8 @@ FEATURE_COLUMNS = [
     "early_season_flag",
     # Interactions
     "sharp_x_fip",
+    # Home/road split
+    "home_road_split_DIFF",
 ]
 
 
@@ -264,7 +266,7 @@ def shift_team_perf(df):
 
 
 def add_rolling_form(long_games, W):
-    """Add W-game rolling win%, run-diff avg, and runs-scored avg."""
+    """Add W-game rolling win%, run-diff avg, runs-scored avg, and home/road-specific win%."""
     g = long_games.sort_values(["team", "season", "game_date", "game_id"]).copy()
 
     def rmean(ser, window):
@@ -278,10 +280,24 @@ def add_rolling_form(long_games, W):
     g[f"runs_scored_avg_{W}"] = g.groupby(["team", "season"], sort=False)["runs_for"].transform(
         lambda s: rmean(s, W))
 
-    roll_cols = [f"win_pct_{W}", f"run_diff_avg_{W}", f"runs_scored_avg_{W}"]
-    hm = g[g["is_home"] == 1][["game_id"] + roll_cols].rename(
+    # Home-specific rolling win% (only over each team's home games)
+    mask_home = g["is_home"] == 1
+    mask_away = g["is_home"] == 0
+    g.loc[mask_home, f"home_win_pct_{W}"] = (
+        g[mask_home].groupby(["team", "season"], sort=False)["win"]
+        .transform(lambda s: rmean(s, W))
+    )
+    # Road-specific rolling win% (only over each team's away games)
+    g.loc[mask_away, f"road_win_pct_{W}"] = (
+        g[mask_away].groupby(["team", "season"], sort=False)["win"]
+        .transform(lambda s: rmean(s, W))
+    )
+
+    roll_cols = [f"win_pct_{W}", f"run_diff_avg_{W}", f"runs_scored_avg_{W}",
+                 f"home_win_pct_{W}", f"road_win_pct_{W}"]
+    hm = g[mask_home][["game_id"] + roll_cols].rename(
         columns={c: f"h_{c}" for c in roll_cols})
-    aw = g[g["is_home"] == 0][["game_id"] + roll_cols].rename(
+    aw = g[mask_away][["game_id"] + roll_cols].rename(
         columns={c: f"a_{c}" for c in roll_cols})
     return hm.merge(aw, on="game_id")
 
@@ -325,6 +341,8 @@ def load_and_engineer_features():
     df_feat["wind_speed_kmh"]          = pd.to_numeric(df_feat["wind_speed_kmh"], errors="coerce").fillna(0.0)
     # Interaction: sharp money aligning with pitcher edge
     df_feat["sharp_x_fip"]            = df_feat["sharp_move_flag"] * df_feat["sp_fip_DIFF"]
+    # Home/road split: home team's home win% minus away team's road win%
+    df_feat["home_road_split_DIFF"]   = _gcol(df_feat, f"h_home_win_pct_{BEST_W}") - _gcol(df_feat, f"a_road_win_pct_{BEST_W}")
 
     df_feat = df_feat.sort_values("game_date").reset_index(drop=True)
     df_feat["hg"] = df_feat.groupby(["home_team", "season"]).cumcount()
@@ -561,7 +579,7 @@ if not os.path.exists(results_file):
 
 commit = os.popen("git rev-parse --short HEAD 2>/dev/null").read().strip() or "HEAD"
 status = "ok" if not (roi != roi) else "fail"  # nan check
-desc = f"run12 W={BEST_W} threshold={CONFIDENCE_THRESHOLD} anchor={MARKET_ANCHOR_LAMBDA}"
+desc = f"run13 W={BEST_W} threshold={CONFIDENCE_THRESHOLD} anchor={MARKET_ANCHOR_LAMBDA} home_road_split"
 row = f"{commit}\t{roi:.6f}\t{brier:.6f}\t{status}\t{desc}\n"
 
 with open(results_file, "a") as f:
