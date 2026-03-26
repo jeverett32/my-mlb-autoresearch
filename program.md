@@ -12,11 +12,7 @@ Read context:
 
 master_mlb.csv: The core dataset.
 
-feature_engineering.ipynb: Contains the cells for feature creation, scaling, and ROI calculations.
-
-prepare.py: Handles data loading, date-based splitting (training on historical seasons, validating on recent ones), and the ROI/Brier score evaluation harness. Do not modify.
-
-train.py: The file you modify. Model architecture, training loop, and betting logic (thresholds, stake sizing).
+train.py: The file you modify. Contains the full feature engineering pipeline (market columns, schedule context, lagged stats, rolling form), model architecture, training loop, Kalshi ROI/Brier evaluation, and betting logic (thresholds, stake sizing).
 
 Initialize results.tsv: Create results.tsv with the header:
 commit	val_roi	val_brier	status	description
@@ -43,7 +39,7 @@ Hyperparameters (LR, Batch Size, Weight Decay).
 
 What you CANNOT do:
 
-Modify prepare.py or the evaluation metric code.
+Modify the evaluation metric code (the `evaluate()` function in train.py).
 
 Install new packages not in pyproject.toml.
 
@@ -101,4 +97,4 @@ If val_roi improved: Keep the commit and continue.
 
 If val_roi stayed same or worsened: git reset --hard HEAD~1 and try a different approach.
 
-NEVER STOP: Continue iterating until manually interrupted. If you hit a plateau in ROI, revisit the feature_engineering.ipynb notes to see if you can implement a more complex feature directly into the train.py pipeline.
+NEVER STOP: Continue iterating until manually interrupted. If you hit a plateau in ROI, revisit the feature engineering section in train.py and try adding or modifying features directly (e.g. new diff columns, interaction terms, or adjusting BEST_W and EARLY_SEASON_GAMES).
