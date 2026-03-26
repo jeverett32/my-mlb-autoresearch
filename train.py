@@ -628,3 +628,14 @@ print(f"total_tokens_M:   {total_tokens / 1e6:.1f}")
 print(f"num_steps:        {step}")
 print(f"num_params_M:     {num_params / 1e6:.1f}")
 print(f"depth:            {DEPTH}")
+import os
+results_file = 'results.tsv'
+header = "val_bpb\\tsteps\\tparams_M\\tvram_mb\\ttime_s\\n"
+row = f"{val_bpb:.6f}\\t{step}\\t{total_params/1e6:.1f}\\t{peak_vram_mb:.1f}\\t{training_time:.1f}\\n"
+
+if not os.path.exists(results_file):
+    with open(results_file, 'w') as f:
+        f.write(header)
+with open(results_file, 'a') as f:
+    f.write(row)
+print(f"Results saved to {results_file}")
