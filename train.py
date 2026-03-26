@@ -24,7 +24,7 @@ TIME_BUDGET = 300          # training time budget in seconds
 CSV_INPUT_PATH = "master_mlb.csv"
 
 # Feature engineering
-BEST_W = 31              # rolling window for win%, run-diff, runs-scored averages
+BEST_W = 20              # rolling window for win%, run-diff, runs-scored averages
 EARLY_SEASON_GAMES = 15  # games before this index are flagged as early-season
 
 # Model architecture
@@ -76,14 +76,9 @@ FEATURE_COLUMNS = [
     "sp_k9_DIFF",
     "sp_bb9_DIFF",
     "rolling_k9_DIFF",
-    "rolling_era_DIFF",
-    "rolling_whip_DIFF",
     # Batting
     "wrc_plus_DIFF",
     "woba_DIFF",
-    "war_DIFF",
-    "k_pct_DIFF",
-    "bb_pct_DIFF",
     # Handedness
     "pitcher_handedness_diff",
     "home_pitcher_is_lefty",
@@ -95,8 +90,6 @@ FEATURE_COLUMNS = [
     # Weather / venue
     "temp_c",
     "wind_speed_kmh",
-    "wind_dir_sin",
-    "wind_dir_cos",
     "park_factor",
     "is_night_game",
     # Context
@@ -568,7 +561,7 @@ if not os.path.exists(results_file):
 
 commit = os.popen("git rev-parse --short HEAD 2>/dev/null").read().strip() or "HEAD"
 status = "ok" if not (roi != roi) else "fail"  # nan check
-desc = f"run4 market_anchor_lambda={MARKET_ANCHOR_LAMBDA} threshold={CONFIDENCE_THRESHOLD}"
+desc = f"run8 W={BEST_W} cleaner-feats anchor={MARKET_ANCHOR_LAMBDA} threshold={CONFIDENCE_THRESHOLD}"
 row = f"{commit}\t{roi:.6f}\t{brier:.6f}\t{status}\t{desc}\n"
 
 with open(results_file, "a") as f:
