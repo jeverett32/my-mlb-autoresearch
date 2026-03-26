@@ -7,7 +7,8 @@
 - Use 'tail -n 1 results.tsv' to verify the current baseline before starting a new run.
 - Be concise. Do not explain standard code changes (e.g., hyperparameter tweaks). Only explain complex logic shifts.
 - Keep 'experiment_log.md' entries extremely concise. Use bullet points for 'What was tried' and 'Next Step'. Do not narrate or use conversational filler.
-- If 'experiment_log.md' exceeds 15 entries, summarize the 'Key Findings' and move the oldest 10 entries to 'experiment_log_archive.md' to preserve context window tokens.
+- If 'experiment_log.md' exceeds 15 total entries, summarize the 'Key Findings' and move the oldest 10 entries to 'experiment_log_archive.md' to preserve context window tokens.
+- Every 10 entries after the initial move, move the oldest 10 entries to 'experiment_log_archive.md'. This way we keep between 5-15 entries in our log.
 
 # --- Technical Constraints ---
 - Always use 'uv run' to execute Python scripts (e.g., 'uv run train.py').
@@ -31,3 +32,8 @@
 - Use descriptive variable names but avoid redundant comments.
 - Delete any 'dead code' or commented-out experiments from previous failed runs immediately.
 - Do not add print statements for debugging that stay in the final commit; use the existing logging structure.
+
+# --- Advanced Git Recovery ---
+- NEVER use 'git reset --hard' if it would delete 'experiment_log.md' or 'results.tsv'.
+- To revert a failed experiment, use: git checkout HEAD~1 -- train.py
+- This ensures your memory (logs) stays intact while the code reverts to the last known 'KEPT' state.

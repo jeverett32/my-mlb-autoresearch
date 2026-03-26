@@ -17,3 +17,6 @@ a0864fd	0.015795	0.239972	ok	run13 W=15 threshold=0.04 anchor=1.0 home_road_spli
 097d8a6	0.013410	0.240368	ok	run27 seed=42 W=15 momentum_W=5 threshold=0.04 anchor=1.0 feat_neutralization
 91390e6	-0.024782	0.240543	ok	run28 seed=42 W=15 momentum_W=5 threshold=0.04 anchor=1.0 selective_neutralization
 91390e6	-0.028469	0.240565	ok	run29 seed=42 W=15 momentum_W=5 threshold=0.04 anchor=1.0 2factor_neutralization
+2860c81	-0.006372	0.240542	ok	run30 seed=42 W=15 momentum_W=5 threshold=0.04 anchor=1.0 neutralize_alpha=0.5
+2860c81	0.003910	0.240156	ok	run31 seed=42 lr=0.0005 W=15 momentum_W=5 threshold=0.04 anchor=1.0 feat_neutralization
+2860c81	0.013483	0.240296	ok	run32 seed=42 W=15 momentum_W=5 threshold=0.04 anchor=1.0 NO_neutralization_diagnostic

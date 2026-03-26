@@ -30,21 +30,21 @@ Each run has a **5-minute wall clock budget** for training. Launch with: `uv run
 
 Before every experiment, you **must**:
 1.  Read `experiment_log.md` to identify failed patterns and avoid repetition.
-2.  Consult `research_backlog.md` to see if a listed strategy fits the current situation.
+2.  Consult `research_backlog.md` and follow the procedures in `feature_engineering.md` to determine if the next step should be adding a new signal or pruning an old one.
 3.  Formulate a **hypothesis** (e.g., "The model ignores travel fatigue; adding a rest-diff interaction term should improve ROI").
 4.  Record this hypothesis in `experiment_log.md` **before** running the code.
 
 ## The Experiment Loop
 
-1.  **Hypothesize**: Follow the "Thinker" Protocol.
+1.  **Hypothesize**: Follow the "Thinker Protocol."
 2.  **Edit**: Modify `train.py` based on your hypothesis.
-3.  **Commit**: `git commit -m "Description of experiment"`
-4.  **Run**: `uv run train.py > run.log 2>&1`
-    **Compare**: Run uv run check_improvement.py to see the delta from your previous best.
-5.  **Log**: Update `experiment_log.md` with the results (`val_roi`, `val_brier`, `n_bets`) and whether the idea was kept.
+3.  **Run**: `uv run train.py > run.log 2>&1`
+4.  **Compare**: Execute `uv run check_improvement.py`.
+5.  **Log**: Update `experiment_log.md` with results (`val_roi`, `val_brier`, `n_bets`). 
+    * *Crucial*: Log the result **before** committing or resetting so the record is permanent.
 6.  **Advance or Reset**:
-    * **If ROI improved**: Keep the commit and continue.
-    * **If ROI stayed same or worsened**: `git reset --hard HEAD~1`.
-7.  **The Plateau Rule**: If `val_roi` does not improve for 5 consecutive runs, you **must** pivot to a significantly different approach from the `research_backlog.md`.
+    * **If ROI improved**: `git add .` and `git commit -m "KEPT: [Hypothesis Name] - ROI: [Value]"`
+    * **If ROI stayed same or worsened**: Revert ONLY the code using `git checkout HEAD -- train.py`. Do NOT use `reset --hard`.
+7.  **The Plateau Rule**: If `val_roi` does not improve for 5 consecutive runs, pivot to a major strategy in `research_backlog.md`.
 
 **NEVER STOP**: Continue iterating indefinitely until manually interrupted.

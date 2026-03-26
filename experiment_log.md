@@ -147,4 +147,24 @@
 
 ---
 
+## Run30 — RESET (base: run27)
+- Partial neutralization α=0.5
+- val_roi=-0.64%, val_brier=0.241, n_bets=618
+- **Finding:** Partial neutralization worse than full. α=1.0 is optimal.
+
+## Run31 — RESET (base: run27)
+- LR=5e-4, seed=42
+- val_roi=+0.39%, val_brier=0.240, n_bets=278 (too few bets)
+- **Finding:** Lower LR causes underfitting/few bets. LR=1e-3 is optimal.
+
+## Run32 — RESET (base: run27, DIAGNOSTIC)
+- No neutralization, seed=42
+- val_roi=+1.35%, val_brier=0.240, n_bets=670
+- **CRITICAL FINDING:** Same ROI as run27 (+1.34% with neutralization). Neutralization has zero effect on seed=42. Seed is the dominant confound, not features.
+
+## Run33 — INTERRUPTED (ensemble pivot paused)
+- User pivoted to Feature Engineering Sprint before run33 could be executed.
+
+---
+
 **Current best:** Run27 (seed=42) — ROI=+1.34%, Brier=0.240, 673 bets
