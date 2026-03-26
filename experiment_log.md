@@ -136,7 +136,7 @@
 
 **Run9 remains the more reliable reference** — but itself was only 1 run.
 
-**Next step:** Try TabTransformer (self-attention) to find feature interactions MLP can't. Major architectural pivot.
+**Next step (run24):** Feature neutralization — remove market-correlated signal from non-market features, forcing model to find genuine alpha.
 
 ---
 

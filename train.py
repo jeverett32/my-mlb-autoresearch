@@ -473,6 +473,18 @@ scaler = StandardScaler()
 X_train_sc = scaler.fit_transform(X_train)
 X_val_sc   = scaler.transform(X_val)
 
+# Feature neutralization: remove market_implied_prob-correlated signal from non-market features.
+# Market features are the first 5 columns (market_implied_prob, open_home_implied,
+# line_move_delta, sharp_move_flag, total_move_delta). Only neutralize features 5+.
+mkt_col = X_train_sc[:, 0]  # standardized market_implied_prob
+mkt_var = float(np.var(mkt_col))
+neutralize_from = 5  # skip market columns
+if mkt_var > 1e-8:
+    for j in range(neutralize_from, X_train_sc.shape[1]):
+        beta = float(np.cov(X_train_sc[:, j], mkt_col)[0, 1]) / mkt_var
+        X_train_sc[:, j] -= beta * mkt_col
+        X_val_sc[:, j]   -= beta * X_val_sc[:, 0]
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Device: {device}")
 
@@ -581,7 +593,7 @@ if not os.path.exists(results_file):
 
 commit = os.popen("git rev-parse --short HEAD 2>/dev/null").read().strip() or "HEAD"
 status = "ok" if not (roi != roi) else "fail"  # nan check
-desc = f"run14 W={BEST_W} momentum_W={MOMENTUM_W} threshold={CONFIDENCE_THRESHOLD} anchor={MARKET_ANCHOR_LAMBDA} momentum_diff"
+desc = f"run24 W={BEST_W} momentum_W={MOMENTUM_W} threshold={CONFIDENCE_THRESHOLD} anchor={MARKET_ANCHOR_LAMBDA} feat_neutralization"
 row = f"{commit}\t{roi:.6f}\t{brier:.6f}\t{status}\t{desc}\n"
 
 with open(results_file, "a") as f:
