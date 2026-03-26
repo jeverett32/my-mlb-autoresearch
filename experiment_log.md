@@ -136,7 +136,9 @@
 
 **Run9 remains the more reliable reference** — but itself was only 1 run.
 
-**Next step (run24):** Feature neutralization — remove market-correlated signal from non-market features, forcing model to find genuine alpha.
+**Run24 (commit 8533916) ✓ KEPT — NEW BEST:** val_roi=+10.41%, val_brier=0.2398, n_bets=644. Feature neutralization removes market-correlated variance from non-market features, forcing model to learn genuinely incremental signal.
+
+**Next step (run25):** Neutralize against market logit (log-odds) instead of raw prob — more linear neutralization space.
 
 ---
 
@@ -154,5 +156,5 @@
 | W=15 rolling + W=5 momentum | Sharp weighting, interactions |
 | NOTE: high training variance — results noisy | |
 
-**Current best (results.tsv):** run13 ROI=+1.58% (last committed result before run14 variance issue)
+**Current best:** run24 — ROI=+10.41%, Brier=0.2398, 644 bets
 
