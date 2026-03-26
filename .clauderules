@@ -1,0 +1,5 @@
+- Always use 'uv run' to execute python scripts.
+- When editing train.py, keep the code PEP8 compliant but prioritize speed of execution.
+- If a run crashes with OOM, immediately suggest a reduction in BATCH_SIZE or HIDDEN_DIMS.
+- You have permission to use 'grep', 'sed', and 'awk' to analyze run.log files quickly.
+- When summarizing results in experiment_log.md, use a table format for clarity.

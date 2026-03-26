@@ -64,43 +64,49 @@ PARK_FACTORS = {
 DROP_SUBSTR = {"game_pk", "odds_source", "starter_id"}
 
 FEATURE_COLUMNS = [
-    # Market
-    "market_implied_prob",
-    "open_home_implied",
-    "line_move_delta",
-    "sharp_move_flag",
-    "total_move_delta",
-    # Pitcher quality
-    "sp_fip_DIFF",
-    "sp_era_DIFF",
-    "sp_k9_DIFF",
-    "sp_bb9_DIFF",
-    "rolling_k9_DIFF",
-    # Batting
-    "wrc_plus_DIFF",
-    "woba_DIFF",
-    # Handedness
-    "pitcher_handedness_diff",
-    "home_pitcher_is_lefty",
-    "away_pitcher_is_lefty",
-    # Rolling form
-    "win_pct_W_DIFF",
-    "run_diff_avg_W_DIFF",
-    "runs_scored_avg_W_DIFF",
-    # Weather / venue
-    "temp_c",
-    "wind_speed_kmh",
-    "park_factor",
-    "is_night_game",
-    # Context
-    "rest_days_DIFF",
-    "sp_rest_DIFF",
-    "is_series_finale",
-    "early_season_flag",
-    # Interactions
-    "sharp_x_fip",
-    # Home/road split
-    "home_road_split_DIFF",
+    # --- Market (Closing & Opening Prices) ---
+    "market_implied_prob",      # Closing home win probability (de-vigged). 0.5 = even money.
+    "open_home_implied",        # Opening home win probability. Baseline market expectation.
+    "line_move_delta",          # (Market - Open). Positive means the market moved toward the Home team.
+    "sharp_move_flag",          # Binary (1 if |line_move| > 0.03). Indicates significant market conviction.
+    "total_move_delta",         # Change in Over/Under total. Can signal weather or lineup shifts.
+
+    # --- Pitcher Quality (DIFF = Home - Away, or similar) ---
+    "sp_fip_DIFF",              # (Away FIP - Home FIP). Positive favors Home (lower FIP is better).
+    "sp_era_DIFF",              # (Away ERA - Home ERA). Positive favors Home (lower ERA is better).
+    "sp_k9_DIFF",               # (Home K/9 - Away K/9). Positive favors Home (more strikeouts).
+    "sp_bb9_DIFF",              # (Away BB/9 - Home BB/9). Positive favors Home (fewer walks).
+    "rolling_k9_DIFF",          # Difference in K/9 over the last few starts (recent form).
+
+    # --- Batting Performance ---
+    "wrc_plus_DIFF",            # (Home wRC+ - Away wRC+). Standardized offensive power (100 = Avg).
+    "woba_DIFF",                # (Home wOBA - Away wOBA). Overall offensive contribution.
+
+    # --- Handedness Logic ---
+    "pitcher_handedness_diff",  # Categorical delta between SP handedness.
+    "home_pitcher_is_lefty",    # Binary flag (1 = Left, 0 = Right).
+    "away_pitcher_is_lefty",    # Binary flag (1 = Left, 0 = Right).
+
+    # --- Rolling Form (W-game window) ---
+    "win_pct_W_DIFF",           # (Home Win% - Away Win%) over window W.
+    "run_diff_avg_W_DIFF",      # (Home Run Diff - Away Run Diff) over window W.
+    "runs_scored_avg_W_DIFF",   # (Home Avg Runs - Away Avg Runs) over window W.
+
+    # --- Weather & Venue ---
+    "temp_c",                   # Temperature in Celsius. High temp = more home runs/offense.
+    "wind_speed_kmh",           # Wind speed. High wind can be volatile depending on direction.
+    "park_factor",              # Venue-specific scoring index (e.g., 1.12 for Coors, 0.91 for Seattle).
+    "is_night_game",            # Binary flag. Night games often have lower run environments.
+
+    # --- Context & Fatigue ---
+    "rest_days_DIFF",           # (Home Rest - Away Rest). Positive = Home is better rested.
+    "sp_rest_DIFF",             # (Home SP Rest - Away SP Rest). Specifically for the starting pitchers.
+    "is_series_finale",         # Binary flag. Often associated with "getaway" lineups or different motivation.
+    "early_season_flag",        # Binary flag (first 15 games). Used to weight historical vs. current season stats.
+
+    # --- Interactions & Splits ---
+    "sharp_x_fip",              # Interaction: sharp_move_flag * sp_fip_DIFF. Signal synergy.
+    "home_road_split_DIFF",     # (Home Team Win% at Home - Away Team Win% on Road).
 ]
 
 

@@ -40,6 +40,7 @@ Before every experiment, you **must**:
 2.  **Edit**: Modify `train.py` based on your hypothesis.
 3.  **Commit**: `git commit -m "Description of experiment"`
 4.  **Run**: `uv run train.py > run.log 2>&1`
+    **Compare**: Run uv run check_improvement.py to see the delta from your previous best.
 5.  **Log**: Update `experiment_log.md` with the results (`val_roi`, `val_brier`, `n_bets`) and whether the idea was kept.
 6.  **Advance or Reset**:
     * **If ROI improved**: Keep the commit and continue.
