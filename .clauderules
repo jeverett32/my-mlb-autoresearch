@@ -26,3 +26,8 @@
 - Operating System: Linux (Ubuntu) via SSH.
 - Primary Metric: val_roi (aiming for positive ROI on the validation set).
 - Secondary Metric: val_brier (aiming for < 0.241 for proper calibration).
+
+# --- Code Hygiene ---
+- Use descriptive variable names but avoid redundant comments.
+- Delete any 'dead code' or commented-out experiments from previous failed runs immediately.
+- Do not add print statements for debugging that stay in the final commit; use the existing logging structure.
