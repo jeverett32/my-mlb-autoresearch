@@ -167,4 +167,43 @@
 
 ---
 
+## [Feature Engineering Sprint — Statistical Audit]
+
+**Audit (Pearson |r| with home_win, n=36k):**
+
+| Rank | Feature | |r| | Status |
+|---|---|---|---|
+| Weakest | away_pitcher_is_lefty | 0.0001 | REMOVE |
+| Weakest | rest_days_DIFF | 0.0005 | REMOVE |
+| Weakest | sp_rest_DIFF | 0.0005 | REMOVE (perfect duplicate of rest_days_DIFF) |
+| Weak | temp_c | 0.0009 | Keep (below threshold but contextual) |
+| Weak | momentum_DIFF | 0.0010 | Keep (below threshold but hypothesis-driven) |
+| Strong | market_implied_prob | 0.1858 | Keep |
+| Strong | wrc_plus_DIFF | 0.1128 | Keep |
+
+**Park-factor interaction audit:** All park×pitcher interactions fail. park_factor std≈0.04 makes every product collinear with the underlying feature (r>0.99 redundancy). Substituting with best-passing alternatives:
+
+| New Feature | r_home | max_redundancy | Decision |
+|---|---|---|---|
+| fip_x_line = sp_fip_DIFF × line_move_delta | +0.0057 | 0.072 | ADD |
+| form_x_fip = run_diff_avg_W_DIFF × sp_fip_DIFF | -0.0060 | 0.025 | ADD |
+
+## Run34 — RESET (Feature Engineering Sprint)
+- Remove: away_pitcher_is_lefty, rest_days_DIFF, sp_rest_DIFF; Add: fip_x_line, form_x_fip (28→27 features)
+- val_roi=-2.70%, val_brier=0.241, n_bets=589
+- **Finding:** Pruning + new interactions hurt. New features (|r|≈0.006) are too weak to compensate for removed context. Try pruning-only (remove 3 without adding new features).
+
+## Run35 — RESET (Feature Engineering Sprint, pruning-only)
+- Remove: away_pitcher_is_lefty, rest_days_DIFF, sp_rest_DIFF (28→25 features); no additions
+- val_roi=-0.07%, val_brier=0.240, n_bets=590
+- **Finding:** Pruning alone also hurts with seed=42. The 3 "zero-signal" features may have structural regularization value despite low individual correlation. Feature set is stable at 28 features.
+
+## [Feature Engineering Sprint — Conclusion]
+- **Audit**: 10/28 features below |r|<0.005, but none can be safely pruned without hurting ROI (seed=42)
+- **Park interactions**: All fail screening (redundancy r>0.99 due to park_factor std≈0.04)
+- **New interactions**: fip_x_line, form_x_fip pass screening but add noise in practice
+- **Verdict**: Current 28-feature set is the stable optimum. Deeper interaction features require non-linear selection methods (e.g., permutation importance on a trained model).
+
+---
+
 **Current best:** Run27 (seed=42) — ROI=+1.34%, Brier=0.240, 673 bets
