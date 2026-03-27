@@ -1,0 +1,6 @@
+master_mlb.csv
+run.log
+*.pyc
+__pycache__/
+.git/
+*.ipynb
