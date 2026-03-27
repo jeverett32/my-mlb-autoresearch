@@ -37,6 +37,15 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 15 — LR L1 C=0.05 threshold=0.08 (peak search)
+**Hypothesis**: threshold=0.08 will either find a new peak or show diminishing returns as n_bets drops below ~500/fold.
+**Change**: CONFIDENCE_THRESHOLD=0.08 (was 0.07)
+**Result**: roi=+23.74%, brier=0.2363, n_bets=1470 (3-fold mean)
+**Decision**: KEPT (new best: +2.13pp over 0.07; ROI still climbing strongly)
+**Insight**: High-edge bets continue to outperform; trend still upward.
+
+---
+
 ## Run 14 — LR L1 C=0.05 threshold=0.07 (test diminishing returns)
 **Hypothesis**: threshold=0.07 continues the ROI-vs-volume tradeoff; finding the peak before sample size degrades variance too much.
 **Change**: CONFIDENCE_THRESHOLD=0.07 (was 0.06)
