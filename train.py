@@ -176,6 +176,7 @@ FEATURE_COLUMNS = [
     # --- Interactions ---
     "sharp_x_fip",              # sharp_move_flag * sp_fip_DIFF
     "momentum_DIFF",            # (home 5g win% - home 15g win%) - same for away
+    "luck_x_momentum",          # luck_DIFF * momentum_DIFF: lucky trending teams
 ]
 
 # Early specialist feature set: used when EARLY_CUTOFF is set and either team
@@ -716,6 +717,10 @@ def engineer_new_features(df_feat):
         a_swp = _gcol(df_feat, "a_season_win_pct")
         df_feat["luck_DIFF"] = (h_swp - a_swp) - pyth_diff
         df_feat["pythagorean_DIFF"] = pyth_diff
+
+    # Luck x momentum: lucky teams trending up are especially due for regression
+    if "luck_DIFF" in df_feat.columns and "momentum_DIFF" in df_feat.columns:
+        df_feat["luck_x_momentum"] = df_feat["luck_DIFF"] * df_feat["momentum_DIFF"]
 
     return df_feat
 

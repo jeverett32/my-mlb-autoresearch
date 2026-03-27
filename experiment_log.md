@@ -37,6 +37,46 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 93 — luck_x_momentum interaction (KEPT — new best)
+**Hypothesis**: Lucky trending teams are especially due for regression; the interaction captures non-linear signal.
+**Change**: Added luck_x_momentum = luck_DIFF * momentum_DIFF to engineer_new_features() and FEATURE_COLUMNS.
+**Result**: roi=+42.21% mean, brier=0.2369, fold4=+19.41%, n_bets=280
+**Decision**: KEPT (new best: +1.05pp; BUT fold4 drops to 19.41% and fold2=63.93% at 55 bets is suspicious)
+**Insight**: Mean ROI driven partly by fold2 noise (55 bets, 63.93%); fold4 decline warrants caution.
+
+---
+
+## Run 92 — LR C=0.045
+**Result**: roi=+40.47% mean, fold4=+11.79% — worse. C=0.04 is the optimum.
+**Decision**: REVERTED.
+
+## PLATEAU REACHED (5/5 since Run 87) — continuing Phase 2/3 feature search
+
+---
+
+## Run 91 — Remove luck_DIFF
+**Result**: roi=+41.10% mean, fold4=+23.07% — essentially identical (L1 was giving tiny weight to luck_DIFF).
+**Decision**: REVERTED; luck_DIFF marginally helpful.
+
+---
+
+## Run 90 — sharp_x_mkt interaction
+**Result**: roi=+40.55% mean — worse. L1 zeroed.
+**Decision**: REVERTED.
+
+---
+
+## Run 89 — EARLY_CUTOFF=20 at threshold=0.14
+**Result**: roi=+39.97% mean, fold4=+10.83% — much worse on fold4. REVERTED.
+
+---
+
+## Run 88 — threshold=0.15
+**Result**: roi=+36.97% mean, fold4=+10.04%, n_bets=229 (~57/fold) — much worse; noise dominates.
+**Decision**: REVERTED; threshold=0.14 is the ceiling.
+
+---
+
 ## Run 87 — threshold=0.14 at PROB_CAP=(0.34,0.66) (KEPT — new best)
 **Hypothesis**: With better features and tighter cap, threshold=0.14 may now be sustainable.
 **Change**: CONFIDENCE_THRESHOLD=0.14 (was 0.13)
