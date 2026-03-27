@@ -8,8 +8,10 @@ Usage: uv run train.py
 import os
 import math
 import time
+import random
 import warnings
 
+os.environ['PYTHONHASHSEED'] = '42'
 warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['PYTHONWARNINGS'] = 'ignore'
@@ -1097,6 +1099,7 @@ def run_walk_forward(df, active_feats, early_feats):
 # ---------------------------------------------------------------------------
 
 t_start = time.time()
+random.seed(42)
 np.random.seed(42)
 
 df = load_and_engineer_features()

@@ -28,6 +28,44 @@
 
 <!-- Add new runs below this line -->
 
+## Run 5 — ensemble_stack baseline (Phase 1)
+**Hypothesis**: LR meta-learner stacked on LGB + XGB + LR with disagreement feature (stats_prob − market_prob) should capture non-linear model interactions and beat simple LR.
+**Change**: MODEL="ensemble_stack"
+**Result**: roi=+11.04%, brier=0.2531, n_bets=5541 (3-fold mean)
+**Decision**: REVERTED (LR 17.78% still best)
+**Insight**: Stack degrades calibration (higher Brier); meta-learner overfits the disagreement signal.
+
+## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
+
+---
+
+## Run 4 — ensemble_avg baseline (Phase 1)
+**Hypothesis**: Averaging LR + LGB + XGB probabilities should reduce individual model variance and produce a more stable ROI, potentially beating LR alone.
+**Change**: MODEL="ensemble_avg"
+**Result**: roi=+15.56%, brier=0.2375, n_bets=4234 (3-fold mean)
+**Decision**: REVERTED (LR 17.78% still best)
+**Insight**: Averaging dilutes LR's advantage; tree models pull the ensemble down.
+
+---
+
+## Run 3 — XGB baseline (Phase 1)
+**Hypothesis**: XGBoost handles non-linear interactions similarly to LGB but with a different regularization scheme; may produce different ROI profile.
+**Change**: MODEL="xgb"
+**Result**: roi=+15.61%, brier=0.2384, n_bets=4031 (3-fold mean)
+**Decision**: REVERTED (LR 17.78% still best)
+**Insight**: XGB better than LGB but still below LR; tree models may overfit with heavily market-correlated features.
+
+---
+
+## Run 2 — LGB baseline (Phase 1)
+**Hypothesis**: LightGBM should outperform LR walk-forward because it handles non-linear feature interactions and imputes NaN natively, giving it more training signal from complex stat relationships.
+**Change**: MODEL="lgb"
+**Result**: roi=+12.68%, brier=0.2407, n_bets=4893 (3-fold mean)
+**Decision**: REVERTED (LR at 17.78% is still best)
+**Insight**: LGB bet on more games but with lower ROI; LR's regularization better with market features dominating.
+
+---
+
 ## Run 1 — LR baseline (Phase 1)
 **Hypothesis**: Logistic Regression with full 55-feature set and calibration will establish a walk-forward baseline; market features alone should produce positive but modest ROI.
 **Change**: MODEL="lr" (default), all other params at default values
