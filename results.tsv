@@ -1,1 +1,2 @@
 commit	val_roi	val_brier	status	description
+f6c5775	0.177767	0.236647	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
