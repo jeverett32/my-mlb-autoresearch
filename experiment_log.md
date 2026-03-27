@@ -37,6 +37,15 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 83 — PROB_CAP=(0.30, 0.70) (KEPT — new best)
+**Hypothesis**: Tighter cap than (0.28,0.72) further concentrates high-quality bets.
+**Change**: PROB_CAP=(0.30,0.70)
+**Result**: roi=+37.88% mean, brier=0.2369, fold4=+26.91%, n_bets=435
+**Decision**: KEPT (new best: +0.40pp; fold4 declining with tighter cap — watch for overfitting)
+**Insight**: ROI continues to improve but fold4 regression suggests diminishing returns on cap tightening.
+
+---
+
 ## Run 82 — PROB_CAP=(0.28, 0.72) (KEPT — new best)
 **Hypothesis**: Slightly tighter cap concentrates on higher-confidence bets without over-restricting like (0.35,0.65).
 **Change**: PROB_CAP=(0.28,0.72) (was 0.25,0.75)
