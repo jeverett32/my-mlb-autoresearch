@@ -37,6 +37,95 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 66 — EARLY_CUTOFF=25 (KEPT — new 4-fold best)
+**Hypothesis**: Expanding early-season specialist to 25 games improves coverage of genuinely uncertain early period.
+**Change**: EARLY_CUTOFF=25 (was 15)
+**Result**: roi=+35.73% mean, brier=0.2368, fold4=+24.71%, n_bets=509
+**Decision**: KEPT (new 4-fold best mean: +0.21pp over 35.52%)
+**Insight**: Larger specialist window selects slightly different bet pool; mean ROI up but fold4 drops (fewer bets: 129 vs 164). Tradeoff accepted per mean-ROI-only rule.
+
+---
+
+## Run 65 — temp_x_wrc interaction
+**Hypothesis**: Heat amplifies batting quality gap (seeded interaction from backlog).
+**Change**: Added temp_x_wrc to FEATURE_COLUMNS.
+**Result**: roi=+32.96% mean, fold4=+24.07% — much worse.
+**Decision**: REVERTED
+**Insight**: Interaction features consistently degrade LR; market signal dominates and interactions introduce noise.
+
+---
+
+## Run 64 — LR C=0.06
+**Hypothesis**: Fine-grained search between C=0.05 and C=0.10.
+**Change**: LR_PARAMS C=0.06 (was 0.05)
+**Result**: roi=+32.49% mean, fold4=+21.98% — much worse.
+**Decision**: REVERTED
+**Insight**: C=0.05 is a sharp optimum; small increase in C causes significant degradation.
+
+---
+
+## Run 63 — threshold=0.14 at current best config
+**Hypothesis**: Run 39 tested 0.14 before day_of_week/MOMENTUM_W=10; with better features, 0.14 may beat 0.13.
+**Change**: CONFIDENCE_THRESHOLD=0.14 (was 0.13)
+**Result**: roi=+35.12% mean, fold4=+24.13% — worse on both metrics.
+**Decision**: REVERTED
+**Insight**: threshold=0.13 remains optimal; 0.14 degrades fold4 significantly.
+
+---
+
+## Run 62 — MOMENTUM_W=7
+**Hypothesis**: MOMENTUM_W=7 splits the difference between tested values of 5 and 10.
+**Change**: MOMENTUM_W=7 (was 10)
+**Result**: roi=+35.14% mean, fold4=+26.92% — slightly worse.
+**Decision**: REVERTED
+**Insight**: MOMENTUM_W=10 remains optimal; 7 is worse on mean.
+
+---
+
+## Run 61 — BEST_W=20
+**Hypothesis**: W=20 smooths out noise; may generalize better to 2025.
+**Change**: BEST_W=20
+**Result**: roi=+34.06% mean, fold4=+23.60% — worse. W=15 optimal confirmed.
+**Decision**: REVERTED
+
+---
+
+## Run 60 — BEST_W=10
+**Hypothesis**: Shorter window may be more reactive to recent trends.
+**Change**: BEST_W=10
+**Result**: roi=+33.77% mean, fold4=+26.26% — worse.
+**Decision**: REVERTED
+**Insight**: W=15 is confirmed optimal for walk-forward; W in {10,12,20} all worse.
+
+---
+
+## Run 59 — BEST_W=12
+**Hypothesis**: W=15 was validated in MLP era; walk-forward may favor a shorter 12-game window balancing recency with stability.
+**Change**: BEST_W=12 (was 15)
+**Result**: roi=+31.83% mean, fold4=+22.89% — significantly worse.
+**Decision**: REVERTED
+**Insight**: W=15 is clearly superior to W=12 walk-forward; shorter window is noisier.
+
+---
+
+## Run 58 — sp_form_vs_career feature
+**Hypothesis**: SP recent rolling ERA minus career ERA (as a DIFF) captures whether starters are in better/worse form than their career norms.
+**Change**: Added `sp_form_vs_career = rolling_era_DIFF - sp_era_DIFF` to engineer_new_features() and FEATURE_COLUMNS.
+**Result**: roi=+35.52% mean, fold4=+29.50% — identical to best (L1 zeroed the feature).
+**Decision**: REVERTED
+**Insight**: L1 regression at C=0.05 zeros out features that are near-linear combinations of existing ones; this feature adds no independent signal.
+
+---
+
+## Run 57 — road_trip_length feature
+**Hypothesis**: Consecutive away games for the away team captures cumulative fatigue beyond rest_days alone.
+**Change**: Added `road_trip_length` (consecutive away game count) to engineer_new_features() and FEATURE_COLUMNS.
+**Result**: roi=+34.00% mean, fold4=+25.23%, n_bets=547 — worse.
+**Decision**: REVERTED
+**Insight**: Road trip length adds noise; rest_days likely already captures fatigue signal.
+
+---
+
 ## Run 56 — is_series_opener feature
 **Result**: roi=+34.84% mean, fold4=+27.39% — worse. REVERTED.
 

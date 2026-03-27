@@ -58,7 +58,7 @@ CALIBRATE = True
 
 # Early season specialist: separate LR model for games where either team has
 # played fewer than EARLY_CUTOFF games. Set to None to disable.
-EARLY_CUTOFF = 15   # games played threshold; None to disable specialist
+EARLY_CUTOFF = 25   # games played threshold; None to disable specialist
 
 # ---------------------------------------------------------------------------
 # Feature engineering
