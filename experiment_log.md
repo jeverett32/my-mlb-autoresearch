@@ -37,6 +37,31 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 8 — LR with L1 penalty (SAGA solver) for auto feature selection (Phase 3)
+**Hypothesis**: L1 regularization will zero out redundant features automatically, producing a sparse LR that generalizes better than L2 across walk-forward folds.
+**Change**: LR_PARAMS: penalty=l1, solver=saga (from lbfgs)
+**Result**: roi=+17.96%, brier=0.2365, n_bets=3660 (3-fold mean)
+**Decision**: KEPT (new best: +0.18pp over L2 baseline)
+**Insight**: L1 sparse selection marginally beats L2; SAGA converges to better sparse solution with 55 features.
+
+---
+
+## Run 7 — Add 3 seeded interactions (Phase 2B)
+**Hypothesis**: Adding fip_x_line, form_x_fip, woba_x_sharp will capture non-linear synergies between sharp market moves and team quality signals, improving LR ROI beyond 17.78%.
+**Change**: Added fip_x_line, form_x_fip, woba_x_sharp to FEATURE_COLUMNS → 58 features
+**Result**: roi=+17.71%, brier=0.2367, n_bets=3673 (3-fold mean)
+**Decision**: REVERTED (LR 17.78% still best; interactions add noise)
+**Insight**: Interaction features don't add signal for LR; L2 penalty already handles collinear market features.
+
+---
+
+## Run 6 — Prune 5 zero-LGB-importance features (Phase 2A)
+**Hypothesis**: Removing sp_bb9_DIFF, war_DIFF, away_pitcher_is_lefty, early_season_flag, sharp_x_fip (all zero LGB permutation importance) will reduce noise for LR and improve ROI.
+**Change**: Removed 5 zero-importance features → 50 features total
+**Result**: roi=+17.73%, brier=0.2366, n_bets=3647 (3-fold mean)
+**Decision**: REVERTED (marginal decrease from 17.78%)
+**Insight**: Pruned features had negligible LR effect; L2 reg already dampens their noise.
+
 ---
 
 ## Run 4 — ensemble_avg baseline (Phase 1)

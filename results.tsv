@@ -1,2 +1,11 @@
 commit	val_roi	val_brier	status	description
 f6c5775	0.177767	0.236647	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
+e2c89a8	0.126781	0.240741	ok	model=lgb calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
+e2c89a8	0.156091	0.238417	ok	model=xgb calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
+e2c89a8	0.155574	0.237522	ok	model=ensemble_avg calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
+e2c89a8	0.110438	0.253069	ok	model=ensemble_stack calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
+e2c89a8	0.126781	0.240741	ok	model=lgb calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
+e2c89a8	0.177767	0.236647	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
+42fbe2d	0.177259	0.236629	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=49
+42fbe2d	0.177147	0.236691	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=57
+42fbe2d	0.179563	0.236457	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54

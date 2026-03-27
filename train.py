@@ -230,8 +230,9 @@ XGB_PARAMS = {
 
 LR_PARAMS = {
     "C":            0.1,
+    "penalty":      "l1",
     "max_iter":     2000,
-    "solver":       "lbfgs",
+    "solver":       "saga",
     "random_state": 42,
     "n_jobs":       -1,
 }
