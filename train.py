@@ -65,6 +65,7 @@ EARLY_CUTOFF = 15   # games played threshold; None to disable specialist
 # ---------------------------------------------------------------------------
 BEST_W = 15           # rolling window (games) for win%, run-diff, etc.
 MOMENTUM_W = 10       # short window for hot/cold streak signal
+TRAIN_WINDOW_YEARS = None  # limit training to last N years; None = use all history
 EARLY_SEASON_GAMES = 15  # used for early_season_flag feature
 
 DROP_SUBSTR = {"game_pk", "odds_source", "starter_id"}
@@ -168,6 +169,7 @@ FEATURE_COLUMNS = [
     # --- Calendar ---
     "month",                    # 1-12; season structure matters
     "days_since_asb",           # 0 pre/during ASB; days elapsed post-break
+    "day_of_week",              # 0=Mon...6=Sun; travel/fatigue patterns
 
     # --- Interactions ---
     "sharp_x_fip",              # sharp_move_flag * sp_fip_DIFF
@@ -343,8 +345,9 @@ def add_schedule_context(df):
     df["wind_dir_cos"] = np.cos(deg)
     df["wind_speed_kmh"] = pd.to_numeric(df["wind_speed_kmh"], errors="coerce").fillna(0.0)
 
-    # Month
+    # Month and day-of-week
     df["month"] = df["game_date"].dt.month
+    df["day_of_week"] = df["game_date"].dt.dayofweek  # 0=Mon, 6=Sun
 
     # Days since All-Star break (0 before/during ASB)
     def _days_asb(row):
@@ -943,7 +946,11 @@ def run_walk_forward(df, active_feats, early_feats):
         print(f"Fold {fold_idx+1}/{len(WALK_FORWARD_FOLDS)}: "
               f"train < {train_end}  |  val [{val_start}, {val_end})")
 
-        train_mask = df["game_date"] < train_end
+        if TRAIN_WINDOW_YEARS is not None:
+            train_start = str(int(train_end[:4]) - TRAIN_WINDOW_YEARS) + train_end[4:]
+            train_mask = (df["game_date"] >= train_start) & (df["game_date"] < train_end)
+        else:
+            train_mask = df["game_date"] < train_end
         val_mask   = (df["game_date"] >= val_start) & (df["game_date"] < val_end)
         train_df   = df[train_mask].copy()
         val_df     = df[val_mask].copy()
