@@ -170,6 +170,7 @@ FEATURE_COLUMNS = [
     "month",                    # 1-12; season structure matters
     "days_since_asb",           # 0 pre/during ASB; days elapsed post-break
     "day_of_week",              # 0=Mon...6=Sun; travel/fatigue patterns
+    "luck_DIFF",                # season_win_pct_DIFF - pythagorean_DIFF: regression-to-mean signal
 
     # --- Interactions ---
     "sharp_x_fip",              # sharp_move_flag * sp_fip_DIFF
@@ -699,6 +700,20 @@ def engineer_new_features(df_feat):
 
     if "early_season_flag" in df_feat.columns and "sp_fip_DIFF" in df_feat.columns:
         df_feat["early_x_fip"] = df_feat["early_season_flag"] * df_feat["sp_fip_DIFF"]
+
+    # Pythagorean luck: actual season win% minus Pythagorean expectation (RS^2/(RS^2+RA^2))
+    # Positive = home team winning more than run differential suggests (luck regression coming)
+    h_rs = _gcol(df_feat, f"h_runs_scored_avg_{BEST_W}").replace(0, np.nan)
+    h_ra = _gcol(df_feat, f"h_runs_allowed_avg_{BEST_W}").replace(0, np.nan)
+    a_rs = _gcol(df_feat, f"a_runs_scored_avg_{BEST_W}").replace(0, np.nan)
+    a_ra = _gcol(df_feat, f"a_runs_allowed_avg_{BEST_W}").replace(0, np.nan)
+    if not (h_rs.isna().all() or h_ra.isna().all()):
+        h_pyth = h_rs ** 2 / (h_rs ** 2 + h_ra ** 2)
+        a_pyth = a_rs ** 2 / (a_rs ** 2 + a_ra ** 2)
+        pyth_diff = h_pyth - a_pyth
+        h_swp = _gcol(df_feat, "h_season_win_pct")
+        a_swp = _gcol(df_feat, "a_season_win_pct")
+        df_feat["luck_DIFF"] = (h_swp - a_swp) - pyth_diff
 
     return df_feat
 

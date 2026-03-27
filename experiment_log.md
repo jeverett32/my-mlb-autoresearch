@@ -37,6 +37,53 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 72 — luck_DIFF feature (KEPT — new best)
+**Hypothesis**: Teams overperforming Pythagorean expectation (lucky wins) tend to regress; this luck differential gives an independent signal.
+**Change**: Added `luck_DIFF = season_win_pct_DIFF - pythagorean_DIFF` to engineer_new_features() and FEATURE_COLUMNS.
+**Result**: roi=+35.77% mean, brier=0.2369, fold4=+24.66%, n_bets=504
+**Decision**: KEPT (new best: +0.04pp over 35.73%)
+**Insight**: Pythagorean regression signal kept by L1 — small but consistent improvement across folds 1 and 3.
+
+---
+
+## Run 71 — Early specialist C=0.5
+**Hypothesis**: More specialist training data with EARLY_CUTOFF=25 allows less regularization.
+**Change**: build_early_lr C=0.5 (was 0.1)
+**Result**: roi=+35.56% mean, fold4=+24.77% — slightly worse.
+**Decision**: REVERTED
+**Insight**: Specialist C=0.1 is near-optimal; reducing regularization marginally worse.
+
+---
+
+## Run 70 — expanded EARLY_FEATURE_COLUMNS (add open_home_implied, line_move, sharp, day_of_week)
+**Hypothesis**: Specialist lacks market momentum signals that help the regular model.
+**Change**: Added open_home_implied, line_move_delta, sharp_move_flag, day_of_week to EARLY_FEATURE_COLUMNS.
+**Result**: roi=+34.76% mean, fold4=+24.66% — worse.
+**Decision**: REVERTED
+**Insight**: Original minimal specialist feature set is better; more features add noise for early-season LR.
+
+---
+
+## Run 69 — threshold=0.12 at EARLY_CUTOFF=25
+**Result**: roi=+32.05% mean, fold4=+24.12% — much worse.
+**Decision**: REVERTED
+**Insight**: threshold=0.13 remains optimal regardless of EARLY_CUTOFF setting.
+
+---
+
+## Run 68 — EARLY_CUTOFF=22
+**Result**: roi=+32.99% mean, fold4=+17.66% — much worse, highly variable.
+**Decision**: REVERTED
+
+---
+
+## Run 67 — EARLY_CUTOFF=30
+**Result**: roi=+34.49% mean, fold4=+23.82% — worse.
+**Decision**: REVERTED
+**Insight**: EARLY_CUTOFF=25 is the sweet spot; 22 causes high variance (fold4=17.66%), 30 is also worse.
+
+---
+
 ## Run 66 — EARLY_CUTOFF=25 (KEPT — new 4-fold best)
 **Hypothesis**: Expanding early-season specialist to 25 games improves coverage of genuinely uncertain early period.
 **Change**: EARLY_CUTOFF=25 (was 15)
