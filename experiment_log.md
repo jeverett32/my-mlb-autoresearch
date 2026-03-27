@@ -37,6 +37,15 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 9 — LR L1 C=0.05 (stronger regularization)
+**Hypothesis**: Tighter L1 regularization (C=0.05 vs 0.10) will zero out more noise features and improve generalization further.
+**Change**: LR_PARAMS C=0.05 (was 0.10)
+**Result**: roi=+19.13%, brier=0.2363, n_bets=3607 (3-fold mean)
+**Decision**: KEPT (new best: +1.17pp over C=0.10)
+**Insight**: Stronger L1 improves all 3 folds; sparser feature set reduces overfitting to noisy team stats.
+
+---
+
 ## Run 8 — LR with L1 penalty (SAGA solver) for auto feature selection (Phase 3)
 **Hypothesis**: L1 regularization will zero out redundant features automatically, producing a sparse LR that generalizes better than L2 across walk-forward folds.
 **Change**: LR_PARAMS: penalty=l1, solver=saga (from lbfgs)

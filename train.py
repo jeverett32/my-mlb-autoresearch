@@ -229,7 +229,7 @@ XGB_PARAMS = {
 }
 
 LR_PARAMS = {
-    "C":            0.1,
+    "C":            0.05,
     "penalty":      "l1",
     "max_iter":     2000,
     "solver":       "saga",
