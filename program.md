@@ -1,100 +1,98 @@
-autoresearch: MLB Kalshi Betting Edition
+autoresearch: MLB Kalshi Betting Edition (Autonomous + Cloud-Resilient)
 
-This is an autonomous experiment to optimize a model for predicting high-ROI MLB bets on Kalshi.
+Goal
 
-Setup
+Run an autonomous experiment loop to maximize validation ROI for Kalshi MLB betting while preserving progress in remote git so session expiry does not lose work.
 
-Agree on a run tag: Propose a tag based on today's date (e.g., mlb-mar26). The branch autoresearch/<tag> must not already exist.
+Key rule
 
-Create the branch: git checkout -b autoresearch/<tag> from master.
+Whenever a run produces a new best `val_roi`, immediately checkpoint with:
 
-Read context:
+`scripts/checkpoint_best.sh "<short description>"`
 
-master_mlb.csv: The core dataset.
+This script is responsible for:
+- detecting whether the most recent `results.tsv` row is a new ROI best
+- committing the relevant files
+- pushing to the current branch
 
-train.py: The file you modify. Contains the full feature engineering pipeline (market columns, schedule context, lagged stats, rolling form), model architecture, training loop, Kalshi ROI/Brier evaluation, and betting logic (thresholds, stake sizing).
+Do not manually re-implement that logic in ad hoc commands during the loop.
 
-Initialize results.tsv: Create results.tsv with the header:
-commit	val_roi	val_brier	status	description
+Files
 
-Initialize experiment_log.md: Create a file to track qualitative insights across runs.
+- `master_mlb.csv`: dataset
+- `train.py`: ONLY model/feature/betting logic to iterate on
+- `results.tsv`: per-run numeric history
+- `experiment_log.md`: qualitative run notes
+- `scripts/checkpoint_best.sh`: checkpoint-on-improvement script
 
-Experimentation
+Hard constraints
 
-Each run has a 5-minute wall clock budget for training. Launch with: uv run train.py.
+- Do not modify `evaluate()` in `train.py`.
+- Do not install new dependencies not already present.
+- Keep each training run bounded by the existing time budget in `train.py`.
+- Never use `git reset --hard HEAD~1` in this workflow.
 
-What you CAN do:
+One-time initialization (start of autonomous session)
 
-Modify train.py. You are encouraged to experiment with:
+1) Verify branch and sync:
+   - `git rev-parse --abbrev-ref HEAD`
+   - `git fetch origin <current-branch>`
+   - `git pull origin <current-branch>`
 
-Model architectures (MLPs, Transformers, etc.).
+2) Ensure tracking files exist:
+   - If `results.tsv` missing, create with header:
+     `commit	val_roi	val_brier	status	description`
+   - If `experiment_log.md` missing, create it.
 
-Feature selection/weighting.
+3) Ensure checkpoint script is executable:
+   - `chmod +x scripts/checkpoint_best.sh`
 
-Decorrelation techniques (Hubáček-style market price decorrelation).
+Main autonomous loop (repeat until manually interrupted)
 
-Betting logic: confidence thresholds ($\phi$), Kelly Criterion variants, or Sharpe-based stake sizing.
+1) Read recent history
+   - Read last entries from `results.tsv` and `experiment_log.md`.
+   - Pick ONE concrete next change to `train.py`.
 
-Hyperparameters (LR, Batch Size, Weight Decay).
+2) Implement one experiment
+   - Edit `train.py` (feature engineering, architecture, optimization, or betting logic).
+   - Keep changes focused and attributable.
 
-What you CANNOT do:
+3) Run training
+   - `uv run train.py > run.log 2>&1`
+   - If run crashes, inspect log, fix, and retry.
 
-Modify the evaluation metric code (the `evaluate()` function in train.py).
+4) Verify metrics logged
+   - Confirm latest row appended to `results.tsv`.
+   - Ensure `val_roi` and `val_brier` are present.
 
-Install new packages not in pyproject.toml.
+5) Update qualitative log
+   - Append a short entry to `experiment_log.md` with:
+     - What changed
+     - Observed result
+     - Next hypothesis
 
-Metrics of Success:
+6) Attempt checkpoint push (mandatory each run)
+   - Run:
+     - `scripts/checkpoint_best.sh "<what changed in this run>"`
+   - If latest run is not a new best, script exits without commit/push.
+   - If latest run is a new best, script commits and pushes automatically.
 
-ROI (Primary): The goal is to maximize Return on Investment on the validation set.
+7) Continue loop
+   - Move to next single-change experiment.
+   - If plateauing, prioritize new feature interactions and market-decorrelation ideas.
 
-Brier Score (Secondary): Ensure the probabilities are well-calibrated.
+Failure handling
 
-Simplicity: If ROI is similar, favor the simpler model.
+- If training fails: debug from `run.log`, fix `train.py`, rerun.
+- If push fails due to transient network issue: retry push with backoff.
+- If checkpoint script reports no staged changes on an improved result, ensure `train.py`, `results.tsv`, and `experiment_log.md` were actually updated before rerunning the script.
 
-Output & Logging
+Success criteria
 
-The script prints:
+- Primary: maximize `val_roi`.
+- Secondary: maintain/improve `val_brier`.
+- Tie-breaker: prefer simpler models/settings when ROI is similar.
 
----
-val_roi:        0.152
-val_brier:      0.211
-training_secs:  300.0
-num_params_M:   1.2
+Termination behavior
 
-
-1. results.tsv (Tab-Separated)
-
-Log every run:
-commit	val_roi	val_brier	status	description
-
-2. experiment_log.md
-
-After each run, append a short entry:
-
-What was tried: (e.g., "Added rolling pitcher ERA features")
-
-Result: (e.g., "ROI increased by 2%, but Brier score worsened. Model is overconfident.")
-
-Next Step: (e.g., "Try adding temperature scaling to calibrate probabilities.")
-
-The Experiment Loop
-
-Check current git state.
-
-Edit train.py based on the previous entries in experiment_log.md.
-
-git commit -m "..."
-
-Run: uv run train.py > run.log 2>&1
-
-Extract val_roi and val_brier. If empty, it's a crash; check tail -n 50 run.log.
-
-Update results.tsv and experiment_log.md.
-
-Advance or Reset:
-
-If val_roi improved: Keep the commit and continue.
-
-If val_roi stayed same or worsened: git reset --hard HEAD~1 and try a different approach.
-
-NEVER STOP: Continue iterating until manually interrupted. If you hit a plateau in ROI, revisit the feature engineering section in train.py and try adding or modifying features directly (e.g. new diff columns, interaction terms, or adjusting BEST_W and EARLY_SEASON_GAMES).
+When the loop is manually stopped, the branch should already contain pushed commits for every newly discovered best pipeline, preserving progress across cloud/session interruptions.
