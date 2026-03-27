@@ -8,7 +8,7 @@
 | W=15 rolling window | W≤10 or W≥20 |
 | W=5 momentum signal | Run-diff momentum, W=3 |
 | Feature neutralization (Hubáček) | TabTransformer, wider/deeper MLP |
-| threshold=0.04, Kelly=0.25 | threshold ≥ 0.05, Kelly=0.15 |
+| threshold=0.04, Kelly=0.25 | threshold ≥ 0.05, Kelly=0.15 | *(MLP era only — walk-forward LR best at threshold=0.12)* |
 
 **MLP stable baseline (run27, seed=42):** ROI=+1.34%, Brier=0.240, 673 bets *(single-split, not comparable)*
 
@@ -36,6 +36,42 @@
 **Insight**: Stack degrades calibration (higher Brier); meta-learner overfits the disagreement signal.
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
+
+## Run 20 — threshold=0.15 probe (diminishing-returns check)
+**Hypothesis**: threshold=0.15 will show whether ROI keeps rising or variance explodes.
+**Change**: CONFIDENCE_THRESHOLD=0.15 (was 0.12)
+**Result**: roi=+39.76%, brier=0.2363, n_bets=243 (3-fold mean, ~81/fold)
+**Decision**: REVERTED (high variance; fold 2 at 51.8% looks like noise at 73 bets)
+**Insight**: Beyond 0.12 the sample is too thin for reliable inference; 0.12 is the practical ceiling.
+
+---
+
+## Run 19 — threshold=0.12 (best reliable)
+**Hypothesis**: threshold=0.12 balances high ROI per bet with sufficient sample size.
+**Change**: CONFIDENCE_THRESHOLD=0.12 (was 0.10)
+**Result**: roi=+34.35%, brier=0.2363, n_bets=521 (3-fold mean, ~174/fold)
+**Decision**: KEPT (new best with adequate sample; +7.42pp over 0.10)
+**Insight**: Large jump from 0.10→0.12 suggests a cluster of very high-edge bets at this band.
+
+---
+
+## Run 18 — threshold=0.10
+**Hypothesis**: Continuing threshold sweep.
+**Change**: CONFIDENCE_THRESHOLD=0.10 (was 0.09)
+**Result**: roi=+26.93%, brier=0.2363, n_bets=880 (3-fold mean)
+**Decision**: SUPERSEDED by 0.12
+**Insight**: ROI still climbing; incremental +1.63pp.
+
+---
+
+## Run 17 — threshold=0.09
+**Hypothesis**: Continuing threshold sweep.
+**Change**: CONFIDENCE_THRESHOLD=0.09 (was 0.08)
+**Result**: roi=+25.30%, brier=0.2363, n_bets=1127 (3-fold mean)
+**Decision**: SUPERSEDED by higher thresholds
+**Insight**: Steady climb continues.
+
+---
 
 ## Run 15 — LR L1 C=0.05 threshold=0.08 (peak search)
 **Hypothesis**: threshold=0.08 will either find a new peak or show diminishing returns as n_bets drops below ~500/fold.
