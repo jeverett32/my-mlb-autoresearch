@@ -37,6 +37,60 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 32 — threshold=0.14 probe
+**Hypothesis**: Push threshold past 0.13 to see if ROI keeps climbing.
+**Change**: CONFIDENCE_THRESHOLD=0.14
+**Result**: roi=+42.93%, brier=0.2363, n_bets=204 (3-fold mean, ~68/fold)
+**Decision**: REVERTED (−0.58pp vs 0.13; fold 3 at 30.9% suggests noise dominates at this sample size)
+**Insight**: 0.13 is the reliable peak; 0.14 enters high-variance territory.
+
+---
+
+## Run 31 — threshold=0.13 (new best at PROB_CAP=0.35/0.65)
+**Hypothesis**: Fine-tuning threshold past 0.12 at the new tighter PROB_CAP setting.
+**Change**: CONFIDENCE_THRESHOLD=0.13 (was 0.12)
+**Result**: roi=+43.51%, brier=0.2363, n_bets=259 (3-fold mean, ~86/fold)
+**Decision**: KEPT (new best: +1.94pp over threshold=0.12)
+**Insight**: Peak shifts upward with tighter cap; 86 bets/fold is borderline but all folds positive.
+
+---
+
+## Run 30 — threshold=0.11 at PROB_CAP=(0.35,0.65)
+**Hypothesis**: Fine-tune below 0.12 to confirm 0.12 is still the lower bound.
+**Change**: CONFIDENCE_THRESHOLD=0.11
+**Result**: roi=+37.30%, brier=0.2363, n_bets=471 (3-fold mean)
+**Decision**: REVERTED (−4.21pp vs 0.12/0.13; too many low-quality bets)
+**Insight**: Below 0.12 dilutes the bet quality at this PROB_CAP.
+
+---
+
+## Run 29 — no-market-prob LR (pure stats)
+**Hypothesis**: Remove market_implied_prob from FEATURE_COLUMNS; model becomes stats-only, edges may be purer.
+**Change**: market_implied_prob removed from features
+**Result**: roi=+39.69%, brier=0.2364, n_bets=360 (3-fold mean)
+**Decision**: REVERTED (−1.88pp; market consensus is still a useful feature)
+**Insight**: Market implied prob adds signal; removing it hurts model calibration.
+
+---
+
+## Run 28 — interaction features added (all 5 seeded)
+**Hypothesis**: fip_x_line, form_x_fip, temp_x_wrc, woba_x_sharp, early_x_fip add synergistic signal.
+**Change**: Added 5 seeded interactions to FEATURE_COLUMNS
+**Result**: roi=+39.48%, brier=0.2365, n_bets=364 (3-fold mean)
+**Decision**: REVERTED (−2.09pp; L1 can't prune these enough at C=0.05)
+**Insight**: Interaction features add noise; existing features already capture main signals.
+
+---
+
+## Run 27 — LR C=0.10 (weaker regularization) at new config
+**Hypothesis**: C=0.10 with tighter PROB_CAP may calibrate better.
+**Change**: LR_PARAMS C=0.10
+**Result**: roi=+39.67%, brier=0.2365, n_bets=379 (3-fold mean)
+**Decision**: REVERTED (−1.90pp; C=0.05 remains optimal)
+**Insight**: C=0.05 is the sweet spot regardless of PROB_CAP setting.
+
+---
+
 ## Run 26 — PROB_CAP=(0.40,0.60) probe
 **Hypothesis**: Even tighter cap further concentrates bets.
 **Change**: PROB_CAP=(0.40,0.60) (was 0.35,0.65)
