@@ -239,9 +239,10 @@ LR_PARAMS = {
 
 # Betting
 CONFIDENCE_THRESHOLD = 0.12   # minimum edge (model_prob - market_implied_prob)
+DYNAMIC_THRESHOLD    = False  # if True: threshold = BASE + 0.02 * abs(mp - 0.5)
 KELLY_FRACTION       = 0.25   # fractional Kelly multiplier
 MAX_BET_FRAC         = 0.25   # hard cap on any single bet (fraction of unit stake)
-PROB_CAP             = (0.25, 0.75)  # clip model probs before edge calc (reduces overconfidence)
+PROB_CAP             = (0.35, 0.65)  # clip model probs before edge cap (reduces overconfidence)
 WARMUP_KELLY_MULT    = 0.5    # multiply Kelly stake by this for early-season games
 
 # MLP params (only used when MODEL="mlp")
@@ -907,8 +908,9 @@ def evaluate(probs, y, mkt_probs, is_warmup=None):
         warmup_i  = bool(is_warmup[i])
         edge_home = pp - mp
         edge_away = mp - pp
+        thresh_i  = CONFIDENCE_THRESHOLD + (0.02 * abs(mp - 0.5) if DYNAMIC_THRESHOLD else 0.0)
 
-        if edge_home >= CONFIDENCE_THRESHOLD and mp > 1e-6:
+        if edge_home >= thresh_i and mp > 1e-6:
             dec_odds = 1.0 / mp
             stake    = kelly_stake(pp, dec_odds, is_warmup=warmup_i)
             if stake > 0:
@@ -916,7 +918,7 @@ def evaluate(probs, y, mkt_probs, is_warmup=None):
                 total_staked += stake
                 total_profit += stake * (dec_odds - 1.0) if y[i] == 1.0 else -stake
 
-        elif edge_away >= CONFIDENCE_THRESHOLD and (1.0 - mp) > 1e-6:
+        elif edge_away >= thresh_i and (1.0 - mp) > 1e-6:
             prob_away = 1.0 - pp
             dec_odds  = 1.0 / (1.0 - mp)
             stake     = kelly_stake(prob_away, dec_odds, is_warmup=warmup_i)

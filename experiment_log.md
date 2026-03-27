@@ -37,6 +37,60 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 26 — PROB_CAP=(0.40,0.60) probe
+**Hypothesis**: Even tighter cap further concentrates bets.
+**Change**: PROB_CAP=(0.40,0.60) (was 0.35,0.65)
+**Result**: roi=+35.83%, brier=0.2363, n_bets=419 (3-fold mean)
+**Decision**: REVERTED (reverses gain from tighter cap; sweet spot is 0.35,0.65)
+**Insight**: Cap at 0.40 over-restricts the edge window; fewer valid bets with worse ROI.
+
+---
+
+## Run 25 — PROB_CAP=(0.35,0.65)
+**Hypothesis**: Tighter cap forces model to have >12% edge even after aggressive clipping — stronger filter for high-quality bets.
+**Change**: PROB_CAP=(0.35,0.65) (was 0.30,0.70)
+**Result**: roi=+41.57%, brier=0.2363, n_bets=359 (3-fold mean)
+**Decision**: KEPT (new best: +1.00pp over 0.30,0.70; n_bets adequate at ~120/fold)
+**Insight**: Incremental improvement; peak seems near — capping at 0.40 reverses gains.
+
+---
+
+## Run 24 — PROB_CAP=(0.30,0.70)
+**Hypothesis**: Tighter prob capping prevents overconfident model probs from triggering low-quality bets; only genuine large edges survive the 0.12 threshold.
+**Change**: PROB_CAP=(0.30,0.70) (was 0.25,0.75)
+**Result**: roi=+40.57%, brier=0.2363, n_bets=433 (3-fold mean)
+**Decision**: SUPERSEDED by (0.35,0.65)
+**Insight**: Tighter cap is better — filters out bets where edge is inflated by model overconfidence.
+
+---
+
+## Run 23 — EARLY_CUTOFF=None (disable specialist)
+**Hypothesis**: All games using one LR model may generalize better than splitting early/regular season.
+**Change**: EARLY_CUTOFF=None
+**Result**: roi=+33.82%, brier=0.2370, n_bets=507 (3-fold mean)
+**Decision**: REVERTED (−0.53pp; specialist marginally helpful)
+**Insight**: Early-season specialist remains worth keeping.
+
+---
+
+## Run 22 — Dynamic threshold probe
+**Hypothesis**: Adjusting threshold by market certainty (BASE + 0.02*|mp−0.5|) selects better bets.
+**Change**: DYNAMIC_THRESHOLD=True (BASE=0.12)
+**Result**: roi=+34.58%, brier=0.2363, n_bets=498 (3-fold mean)
+**Decision**: REVERTED (+0.23pp within noise; added complexity not justified)
+**Insight**: Static threshold suffices; market certainty adjustment marginal.
+
+---
+
+## Run 21 — threshold=0.20 probe (extreme selectivity)
+**Hypothesis**: Even higher threshold may find ROI peak or show noise collapse.
+**Change**: CONFIDENCE_THRESHOLD=0.20
+**Result**: roi=+56.90%, brier=0.2363, n_bets=68 (3-fold mean, ~23/fold)
+**Decision**: REVERTED (meaningless — 23 bets/fold is pure noise)
+**Insight**: Above 0.15 is unreliable; sample too small.
+
+---
+
 ## Run 20 — threshold=0.15 probe (diminishing-returns check)
 **Hypothesis**: threshold=0.15 will show whether ROI keeps rising or variance explodes.
 **Change**: CONFIDENCE_THRESHOLD=0.15 (was 0.12)
