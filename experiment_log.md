@@ -37,6 +37,15 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 13 — LR L1 C=0.05 threshold=0.06 (even more selective)
+**Hypothesis**: Pushing threshold to 0.06 further concentrates bets on highest-confidence predictions; diminishing returns may kick in as sample size shrinks.
+**Change**: CONFIDENCE_THRESHOLD=0.06 (was 0.05)
+**Result**: roi=+21.21%, brier=0.2363, n_bets=2352 (3-fold mean)
+**Decision**: KEPT (new best: +1.33pp over 0.05)
+**Insight**: ROI keeps improving with selectivity; top-edge bets have strong positive calibration.
+
+---
+
 ## Run 12 — LR L1 C=0.05 threshold=0.05 (higher selectivity)
 **Hypothesis**: Raising threshold to 0.05 selects only highest-confidence bets; if model calibration is good, these bets have higher per-unit ROI.
 **Change**: CONFIDENCE_THRESHOLD=0.05 (was 0.04)

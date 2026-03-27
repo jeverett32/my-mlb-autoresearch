@@ -238,7 +238,7 @@ LR_PARAMS = {
 }
 
 # Betting
-CONFIDENCE_THRESHOLD = 0.05   # minimum edge (model_prob - market_implied_prob)
+CONFIDENCE_THRESHOLD = 0.06   # minimum edge (model_prob - market_implied_prob)
 KELLY_FRACTION       = 0.25   # fractional Kelly multiplier
 MAX_BET_FRAC         = 0.25   # hard cap on any single bet (fraction of unit stake)
 PROB_CAP             = (0.25, 0.75)  # clip model probs before edge calc (reduces overconfidence)

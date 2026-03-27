@@ -13,3 +13,4 @@ e2c89a8	0.177767	0.236647	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=1
 8185895	0.190657	0.236510	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.04 feats=54
 8185895	0.181204	0.236301	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.03 feats=54
 8185895	0.198824	0.236301	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.05 feats=54
+ec00198	0.212090	0.236301	ok	model=lr calibrate=True folds=3 early_cutoff=15 W=15 momentum_W=5 threshold=0.06 feats=54
