@@ -12,8 +12,10 @@ An autonomous experiment loop to maximize walk-forward ROI on MLB home/away Kals
    - `research_backlog.md` — what to try next
    - `feature_engineering.md` — screening rules for new features
    - `data_dictionary.md` — directional definitions for all features
+   - `scripts/checkpoint_best.sh` — best-run auto commit/push logic
 4. **Initialize `results.tsv`** with header: `commit  val_roi  val_brier  status  description`
 5. **Initialize `experiment_log.md`** if empty.
+6. **Ensure checkpoint script is executable:** `chmod +x scripts/checkpoint_best.sh`
 
 ---
 
@@ -60,9 +62,10 @@ Before every experiment:
 3. Run          →  uv run train.py > run.log 2>&1
 4. Compare      →  uv run check_improvement.py
 5. Log          →  Append to experiment_log.md (BEFORE any git action)
-6. Advance or Reset:
-     ROI improved   → git add . && git commit -m "KEPT: [Hypothesis] ROI=[value]"
-     ROI same/worse → git checkout HEAD -- train.py
+6. Checkpoint (mandatory):
+     scripts/checkpoint_best.sh "[short description of this run]"
+     - ROI improved   → script commits + pushes current branch
+     - ROI same/worse → script exits without commit/push
 7. Repeat
 ```
 
@@ -142,3 +145,4 @@ If feature engineering stalls:
 - `engineer_new_features()` runs after all lag/rolling/FanGraphs features — the full lagged dataset is available.
 - The early specialist uses `EARLY_FEATURE_COLUMNS`, not `FEATURE_COLUMNS`. Features only in the early set don't need to be in the regular set.
 - MLP-era history is in `experiment_log_archive.md`. Read it before claiming something hasn't been tried.
+- Never use `git reset --hard HEAD~1` in this workflow.
