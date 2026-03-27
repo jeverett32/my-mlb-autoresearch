@@ -176,7 +176,6 @@ FEATURE_COLUMNS = [
     # --- Interactions ---
     "sharp_x_fip",              # sharp_move_flag * sp_fip_DIFF
     "momentum_DIFF",            # (home 5g win% - home 15g win%) - same for away
-    "luck_x_momentum",          # luck_DIFF * momentum_DIFF: lucky trending teams
 ]
 
 # Early specialist feature set: used when EARLY_CUTOFF is set and either team

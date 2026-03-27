@@ -37,6 +37,49 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 107 — Remove luck_x_momentum at TRAIN_WINDOW_YEARS=4 (KEPT — new best, WARNING)
+**Hypothesis**: Without luck_x_momentum, model might generalize better at 4-year window.
+**Change**: Removed luck_x_momentum from FEATURE_COLUMNS (with TRAIN_WINDOW_YEARS=4)
+**Result**: roi=+44.11% mean, fold4=+0.27%, n_bets=373
+**Decision**: KEPT (new best: +0.31pp; fold4 drops further to 0.27% — results are noise from tiny folds 1-2)
+**Insight**: TRAIN_WINDOW_YEARS=4 regime is noise-dominated; fold1/2 at 45-55 bets drive spurious mean improvements.
+
+---
+
+## Run 106 — TRAIN_WINDOW_YEARS=4 + PROB_CAP=(0.30,0.70)
+**Result**: roi=+40.10% mean, fold4=+2.53% — worse on both.
+**Decision**: REVERTED.
+
+## PLATEAU REACHED (5/5 since Run 101) — advancing phase
+**Note**: Current "best" at 43.80% is from TRAIN_WINDOW_YEARS=4 which has fold4≈0%; this is a spurious optimum due to noisy small early folds. Honest best at TRAIN_WINDOW_YEARS=None is 42.21% (Run 93). Continuing feature search with TRAIN_WINDOW_YEARS=4 per rules.
+
+---
+
+## Run 105 — TRAIN_WINDOW_YEARS=None (full history)
+**Result**: roi=+42.21% mean, fold4=+19.41% — confirms full history is worse on mean but much better on fold4.
+**Decision**: REVERTED (43.80% > 42.21%).
+**Insight**: TRAIN_WINDOW_YEARS=4 inflates mean via noisy early folds but is the "best" per mean-only rule. Full history is much better for generalization.
+
+---
+
+## Run 104 — C=0.08 at TRAIN_WINDOW_YEARS=4
+**Result**: roi=+38.59% mean, fold4=+2.72% — worse. C=0.04 is still optimal even with 4-year window.
+**Decision**: REVERTED.
+
+---
+
+## Run 103 — threshold=0.13 at TRAIN_WINDOW_YEARS=4
+**Result**: roi=+39.98% mean, fold4=+0.26% — much worse. threshold=0.14 is optimal here.
+**Decision**: REVERTED.
+
+---
+
+## Run 102 — TRAIN_WINDOW_YEARS=5
+**Result**: roi=+41.95% mean, fold4=-2.19% — worse on mean and fold4 negative.
+**Decision**: REVERTED.
+
+---
+
 ## Run 101 — TRAIN_WINDOW_YEARS=4 (KEPT — new best, but WARNING)
 **Hypothesis**: Training on last 4 years uses more recent data, improving generalization.
 **Change**: TRAIN_WINDOW_YEARS=4 (was None)
