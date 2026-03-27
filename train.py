@@ -65,7 +65,7 @@ EARLY_CUTOFF = 25   # games played threshold; None to disable specialist
 # ---------------------------------------------------------------------------
 BEST_W = 15           # rolling window (games) for win%, run-diff, etc.
 MOMENTUM_W = 10       # short window for hot/cold streak signal
-TRAIN_WINDOW_YEARS = None  # limit training to last N years; None = use all history
+TRAIN_WINDOW_YEARS = 4    # limit training to last N years; None = use all history
 EARLY_SEASON_GAMES = 15  # used for early_season_flag feature
 
 DROP_SUBSTR = {"game_pk", "odds_source", "starter_id"}

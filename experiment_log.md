@@ -37,6 +37,64 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 101 — TRAIN_WINDOW_YEARS=4 (KEPT — new best, but WARNING)
+**Hypothesis**: Training on last 4 years uses more recent data, improving generalization.
+**Change**: TRAIN_WINDOW_YEARS=4 (was None)
+**Result**: roi=+43.80% mean, brier=0.2391, fold4=+0.91% (212 bets!), n_bets=377
+**Decision**: KEPT (new best: +1.59pp mean; but fold4 near-zero — high overfitting risk; fold1=72.84% at 47 bets is noise)
+**Insight**: 4-year window inflates mean via noisy early folds (small training sets) but completely loses 2025 generalization. Mean metric hides disaster.
+
+---
+
+## Run 100 — Elastic Net (l1_ratio=0.8, C=0.04)
+**Hypothesis**: Mixed L1+L2 penalty gives sparser solution than L2 but allows small weights L1 zeros.
+**Change**: penalty=elasticnet, l1_ratio=0.8, solver=saga
+**Result**: roi=+40.36% mean, fold4=+10.56% — worse. Pure L1 remains superior.
+**Decision**: REVERTED.
+
+---
+
+## Run 99 — LR L2 penalty C=1.0
+**Hypothesis**: L2 with all features may generalize differently from sparse L1.
+**Change**: penalty=l2, C=1.0, solver=lbfgs
+**Result**: roi=+35.34% mean, fold4=+13.51% (341 bets) — much worse. L1 sparse solution is superior.
+**Decision**: REVERTED.
+
+---
+
+## Run 98 — luck_x_pythagorean interaction
+**Result**: roi=+41.05% mean, fold4=+14.17% — worse. Adds noise.
+**Decision**: REVERTED.
+
+## PLATEAU REACHED (5/5 since Run 93) — advancing to next phase
+
+---
+
+## Run 97 — Remove momentum_DIFF
+**Result**: roi=+40.90% mean — worse; momentum_DIFF carries independent signal even with luck_x_momentum present.
+**Decision**: REVERTED.
+
+---
+
+## Run 96 — PROB_CAP=(0.33,0.67)
+**Result**: roi=+41.85% mean — slightly worse than (0.34,0.66) at 42.21%.
+**Decision**: REVERTED; (0.34,0.66) is optimal.
+
+---
+
+## Run 95 — Only luck_DIFF (no pythagorean or luck_x_momentum)
+**Result**: roi=+39.69% mean, fold4=+18.27% — much worse. pythagorean_DIFF + luck_x_momentum are net positive.
+**Decision**: REVERTED.
+
+---
+
+## Run 94 — Remove luck_x_momentum (verify its contribution)
+**Result**: roi=+41.16% mean, fold4=+23.12% — confirms luck_x_momentum adds 1.05pp mean but costs 3.71pp fold4.
+**Decision**: REVERTED; luck_x_momentum stays as part of current best config.
+**Insight**: luck_x_momentum is overfitting folds 1-3; mean improvement is real but generalization to 2025 suffers.
+
+---
+
 ## Run 93 — luck_x_momentum interaction (KEPT — new best)
 **Hypothesis**: Lucky trending teams are especially due for regression; the interaction captures non-linear signal.
 **Change**: Added luck_x_momentum = luck_DIFF * momentum_DIFF to engineer_new_features() and FEATURE_COLUMNS.
