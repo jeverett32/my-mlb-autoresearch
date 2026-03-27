@@ -247,7 +247,7 @@ CONFIDENCE_THRESHOLD = 0.13   # minimum edge (model_prob - market_implied_prob)
 DYNAMIC_THRESHOLD    = False  # if True: threshold = BASE + 0.02 * abs(mp - 0.5)
 KELLY_FRACTION       = 0.25   # fractional Kelly multiplier
 MAX_BET_FRAC         = 0.25   # hard cap on any single bet (fraction of unit stake)
-PROB_CAP             = (0.25, 0.75)  # clip model probs before edge cap (reduces overconfidence)
+PROB_CAP             = (0.28, 0.72)  # clip model probs before edge cap (reduces overconfidence)
 WARMUP_KELLY_MULT    = 0.5    # multiply Kelly stake by this for early-season games
 
 # MLP params (only used when MODEL="mlp")

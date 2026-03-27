@@ -94,3 +94,8 @@ a5b9965	0.348402	0.236748	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=1
 30b54b8	0.362885	0.236834	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.13 feats=57
 f396edf	0.360427	0.236848	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.13 feats=58
 f396edf	0.364022	0.236927	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.13 feats=57
+60aee52	0.335617	0.236788	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.13 feats=57
+60aee52	0.323729	0.236927	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.12 feats=57
+60aee52	0.364022	0.236927	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.13 feats=58
+60aee52	0.356306	0.236896	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.13 feats=58
+60aee52	0.374834	0.236927	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.13 feats=57

@@ -37,6 +37,43 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 82 — PROB_CAP=(0.28, 0.72) (KEPT — new best)
+**Hypothesis**: Slightly tighter cap concentrates on higher-confidence bets without over-restricting like (0.35,0.65).
+**Change**: PROB_CAP=(0.28,0.72) (was 0.25,0.75)
+**Result**: roi=+37.48% mean, brier=0.2369, fold4=+28.43%, n_bets=467
+**Decision**: KEPT (new best: +1.08pp over 36.40%; n_bets lower but all folds profitable)
+**Insight**: Slight tightening of prob cap improves signal-to-noise; doesn't overfit like (0.35,0.65) did.
+
+---
+
+## Run 81 — sharp_x_form interaction
+**Hypothesis**: Sharp money confirming team form has non-linear signal.
+**Change**: Added sharp_x_form = sharp_move_flag * win_pct_W_DIFF.
+**Result**: roi=+35.63% mean — worse.
+**Decision**: REVERTED
+
+---
+
+## Run 80 — era_vs_fip_DIFF (pitcher luck gap)
+**Hypothesis**: ERA-FIP gap measures pitcher luck; unlucky away SP should regress.
+**Change**: Added era_vs_fip_DIFF = sp_era_DIFF - sp_fip_DIFF.
+**Result**: roi=+36.40% mean — identical to best (L1 zeroed).
+**Decision**: REVERTED; highly collinear with existing ERA/FIP features.
+
+---
+
+## Run 79 — threshold=0.12 at C=0.04
+**Result**: roi=+32.37% mean, fold4=+28.53% — much worse on mean.
+**Decision**: REVERTED; threshold=0.13 optimal.
+
+---
+
+## Run 78 — LR C=0.03
+**Result**: roi=+33.56% mean, fold4=+19.28% — much worse; overfit.
+**Decision**: REVERTED; C=0.04 is the new optimum.
+
+---
+
 ## Run 77 — LR C=0.04 (KEPT — new best)
 **Hypothesis**: With more features (luck_DIFF, pythagorean_DIFF), C=0.05 may be slightly over-regularizing; C=0.04 allows these new features more weight.
 **Change**: LR_PARAMS C=0.04 (was 0.05)
