@@ -37,6 +37,103 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 56 — is_series_opener feature
+**Result**: roi=+34.84% mean, fold4=+27.39% — worse. REVERTED.
+
+---
+
+## Run 55 — day_of_week circular encoding (dow_sin, dow_cos)
+**Result**: roi=+33.13% mean, fold4=+20.69% — worse than raw integer. REVERTED.
+
+---
+
+## Run 54 — day_of_week feature (KEPT — current best)
+**Hypothesis**: Day-of-week captures travel/fatigue patterns not captured by rest_days alone.
+**Change**: Added `day_of_week` (0=Mon…6=Sun) to schedule context and FEATURE_COLUMNS.
+**Result**: roi=+35.52% mean, brier=0.2368, fold4=+29.50%, n_bets=549
+**Decision**: KEPT (new best: +0.38pp mean, +1.81pp on fold4)
+**Insight**: Day of week carries real signal — likely Monday games (travel fatigue) or weekend games differ structurally.
+
+---
+
+## Run 53 — game_number_in_season feature
+**Result**: roi=+35.06% — marginal drop. REVERTED.
+
+---
+
+## Run 52 — LGB num_leaves=15 at best config
+**Result**: roi=+23.20% — far worse than LR. REVERTED.
+
+---
+
+## Run 51 — EARLY_CUTOFF=20
+**Result**: roi=+32.11% mean, fold4=+16.29% — worse. REVERTED.
+
+---
+
+## Run 50 — EARLY_CUTOFF=10
+**Result**: roi=+28.78% mean, fold4=+19.57% — worse. REVERTED.
+
+---
+
+## Run 49 — TRAIN_WINDOW_YEARS=3 (recent-data-only training)
+**Hypothesis**: Limiting training to last 3 years avoids stale patterns.
+**Result**: roi=+28.86% mean, fold4=+7.20% — much worse. REVERTED.
+**Insight**: Full training history essential for model calibration; with ~140 bets/fold at threshold=0.13, need all data for stable coefficients.
+
+---
+
+## Run 48 — abs_line_move feature
+**Result**: roi=+33.96% — marginal drop. REVERTED.
+
+---
+
+## Run 47 — fip_x_market interaction feature
+**Result**: roi=+35.14% — identical (L1 zeros it). REVERTED.
+
+---
+
+## Run 46 — no market_implied_prob (at honest 4-fold config)
+**Result**: roi=+34.27% mean — worse than baseline. REVERTED.
+**Insight**: Market consensus remains useful even at honest 4-fold setting.
+
+---
+
+## Run 45 — EARLY_FEATURE_COLUMNS + market microstructure
+**Result**: roi=+33.74% mean — worse. REVERTED.
+
+---
+
+## Run 44 — market_confidence feature (|mp - 0.5|)
+**Result**: roi=+34.22% mean — worse. REVERTED.
+
+---
+
+## Run 43 — L1 feature pruning (remove 15 zeroed features)
+**Result**: roi=+33.23% mean — worse. REVERTED.
+**Insight**: L1 already handles zero-coef features; explicit pruning doesn't help.
+
+---
+
+## Run 42 — LR C=0.03 at 4-fold config
+**Result**: roi=+34.15% mean — worse. C=0.05 optimal.
+
+---
+
+## Run 41 — elasticnet l1_ratio=0.5 and 0.8
+**Result**: roi=+32.58% (0.5), +32.19% (0.8) — worse. L1 optimal.
+
+---
+
+## Run 40 — MOMENTUM_W=10 (CURRENT BEST pre-day_of_week)
+**Hypothesis**: Longer momentum window (10g vs 5g) captures medium-term team trends.
+**Change**: MOMENTUM_W=10 (was 5)
+**Result**: roi=+35.14% mean, fold4=+27.69%, n_bets=556
+**Decision**: KEPT (new best at time of discovery)
+**Insight**: 10-game momentum window better than 5 or 7 for capturing team trajectory.
+
+---
+
 ## ⚠️ OVERFITTING DISCOVERY: tight PROB_CAP hurts 2025 generalization
 When PROB_CAP=(0.35,0.65) was set, 2022-2024 folds showed 43.51% but 2025 fold dropped to 16.89%.
 Reverting to PROB_CAP=(0.25,0.75) restored 2025 ROI to ~25-27%. Tight cap was overfitting.
