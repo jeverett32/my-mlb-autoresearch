@@ -243,7 +243,7 @@ LR_PARAMS = {
 }
 
 # Betting
-CONFIDENCE_THRESHOLD = 0.13   # minimum edge (model_prob - market_implied_prob)
+CONFIDENCE_THRESHOLD = 0.14   # minimum edge (model_prob - market_implied_prob)
 DYNAMIC_THRESHOLD    = False  # if True: threshold = BASE + 0.02 * abs(mp - 0.5)
 KELLY_FRACTION       = 0.25   # fractional Kelly multiplier
 MAX_BET_FRAC         = 0.25   # hard cap on any single bet (fraction of unit stake)

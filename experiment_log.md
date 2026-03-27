@@ -37,6 +37,21 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 87 — threshold=0.14 at PROB_CAP=(0.34,0.66) (KEPT — new best)
+**Hypothesis**: With better features and tighter cap, threshold=0.14 may now be sustainable.
+**Change**: CONFIDENCE_THRESHOLD=0.14 (was 0.13)
+**Result**: roi=+41.16% mean, brier=0.2369, fold4=+23.12%, n_bets=290 (avg 72/fold)
+**Decision**: KEPT (new best: +1.50pp mean; but fold4 drops and n_bets is ~72/fold — borderline)
+**Insight**: Higher threshold + tighter cap concentrates signal but at 72 bets/fold variance risk increases. Monitor fold4.
+
+---
+
+## Run 86 — PROB_CAP=(0.35, 0.65)
+**Result**: roi=+38.95% mean, fold4=+25.11% — worse than (0.34,0.66). Overfitting starts.
+**Decision**: REVERTED; (0.34,0.66) is the sweet spot for current config.
+
+---
+
 ## Run 85 — PROB_CAP=(0.34, 0.66) (KEPT — new best)
 **Change**: PROB_CAP=(0.34,0.66)
 **Result**: roi=+39.66% mean, fold4=+27.10%, n_bets=381
