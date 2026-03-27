@@ -37,6 +37,24 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 77 — LR C=0.04 (KEPT — new best)
+**Hypothesis**: With more features (luck_DIFF, pythagorean_DIFF), C=0.05 may be slightly over-regularizing; C=0.04 allows these new features more weight.
+**Change**: LR_PARAMS C=0.04 (was 0.05)
+**Result**: roi=+36.40% mean, brier=0.2369, fold4=+30.27%, n_bets=504
+**Decision**: KEPT (new best: +0.11pp mean, +5.32pp fold4)
+**Insight**: More features warrant slightly less regularization; fold4 jump from 24.95% to 30.27% is very significant.
+
+---
+
+## Run 76 — short-window pythagorean_DIFF (MOMENTUM_W=10)
+**Hypothesis**: Recent run efficiency (10-game window) adds independent signal from 15-game Pythagorean.
+**Change**: Added pythagorean_short_DIFF (using MOMENTUM_W=10 RS/RA) + expanded roll_short join.
+**Result**: roi=+36.04% mean, fold4=+24.96% — slightly worse than best.
+**Decision**: REVERTED
+**Insight**: Short-window Pythagorean adds noise; 15-game window is the right granularity.
+
+---
+
 ## Run 75 — pythagorean_DIFF feature (KEPT — new best)
 **Hypothesis**: Rolling Pythagorean win% ratio (RS^2/(RS^2+RA^2)) captures run production efficiency beyond raw run differential.
 **Change**: Added `pythagorean_DIFF = h_pyth - a_pyth` to engineer_new_features() and FEATURE_COLUMNS.
