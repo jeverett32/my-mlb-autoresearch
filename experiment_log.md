@@ -37,6 +37,33 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 12 — LR L1 C=0.05 threshold=0.05 (higher selectivity)
+**Hypothesis**: Raising threshold to 0.05 selects only highest-confidence bets; if model calibration is good, these bets have higher per-unit ROI.
+**Change**: CONFIDENCE_THRESHOLD=0.05 (was 0.04)
+**Result**: roi=+19.88%, brier=0.2363, n_bets=2931 (3-fold mean)
+**Decision**: KEPT (new best: +0.75pp over threshold=0.04)
+**Insight**: Fewer, higher-confidence bets improve ROI; model's high-edge predictions are well-calibrated.
+
+---
+
+## Run 11 — LR L1 C=0.05 threshold=0.03 (Phase 4)
+**Hypothesis**: Lowering threshold to 0.03 captures more bets with smaller edges; if the model is well-calibrated those edges still have positive EV, boosting total ROI.
+**Change**: CONFIDENCE_THRESHOLD=0.03 (was 0.04)
+**Result**: roi=+18.12%, brier=0.2363, n_bets=4408 (3-fold mean)
+**Decision**: REVERTED (more bets but lower per-bet ROI)
+**Insight**: 0.04 threshold filters marginal bets correctly; 0.03 adds noise.
+
+---
+
+## Run 10 — LR L1 C=0.02 (even stronger regularization)
+**Hypothesis**: Continuing to increase L1 strength (C=0.02) will further prune noisy features and improve walk-forward ROI.
+**Change**: LR_PARAMS C=0.02 (was 0.05)
+**Result**: roi=+19.07%, brier=0.2365, n_bets=3528 (3-fold mean)
+**Decision**: REVERTED (C=0.05 at 19.13% remains best; diminishing returns)
+**Insight**: C=0.05 is the sweet spot; too aggressive L1 drops useful features.
+
+---
+
 ## Run 9 — LR L1 C=0.05 (stronger regularization)
 **Hypothesis**: Tighter L1 regularization (C=0.05 vs 0.10) will zero out more noise features and improve generalization further.
 **Change**: LR_PARAMS C=0.05 (was 0.10)
