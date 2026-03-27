@@ -64,7 +64,7 @@ EARLY_CUTOFF = 15   # games played threshold; None to disable specialist
 # Feature engineering
 # ---------------------------------------------------------------------------
 BEST_W = 15           # rolling window (games) for win%, run-diff, etc.
-MOMENTUM_W = 5        # short window for hot/cold streak signal
+MOMENTUM_W = 10       # short window for hot/cold streak signal
 EARLY_SEASON_GAMES = 15  # used for early_season_flag feature
 
 DROP_SUBSTR = {"game_pk", "odds_source", "starter_id"}

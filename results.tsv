@@ -46,3 +46,11 @@ e1b874e	0.259879	0.236702	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=1
 e1b874e	0.357293	0.236702	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=5 threshold=0.14 feats=54
 e1b874e	0.348757	0.236702	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=5 threshold=0.15 feats=54
 e1b874e	0.335790	0.236702	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=5 threshold=0.13 feats=54
+f7b1e64	0.325792	0.236912	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=5 threshold=0.13 feats=54
+f7b1e64	0.321935	0.236832	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=5 threshold=0.13 feats=54
+f7b1e64	0.335895	0.236777	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=10 momentum_W=5 threshold=0.13 feats=54
+f7b1e64	0.320294	0.236880	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=20 momentum_W=5 threshold=0.13 feats=54
+f7b1e64	0.343230	0.236788	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=3 threshold=0.13 feats=54
+f7b1e64	0.347220	0.236755	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=7 threshold=0.13 feats=54
+f7b1e64	0.351390	0.236758	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=10 threshold=0.13 feats=54
+f7b1e64	0.338480	0.236750	ok	model=lr calibrate=True folds=4 early_cutoff=15 W=15 momentum_W=12 threshold=0.13 feats=54
