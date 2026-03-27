@@ -170,7 +170,6 @@ FEATURE_COLUMNS = [
     "month",                    # 1-12; season structure matters
     "days_since_asb",           # 0 pre/during ASB; days elapsed post-break
     "day_of_week",              # 0=Mon...6=Sun; travel/fatigue patterns
-    "luck_DIFF",                # season_win_pct_DIFF - pythagorean_DIFF: regression-to-mean signal
     "pythagorean_DIFF",         # h_pyth - a_pyth: rolling run efficiency ratio
 
     # --- Interactions ---

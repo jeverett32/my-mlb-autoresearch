@@ -37,6 +37,26 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 110 — Remove luck_DIFF at TRAIN_WINDOW=4 (KEPT — new best, noise)
+**Change**: Removed luck_DIFF (kept pythagorean_DIFF, no luck_x_momentum, TRAIN_WINDOW=4)
+**Result**: roi=+44.13% mean, fold4=+0.31%, n_bets=373
+**Decision**: KEPT (new best: +0.02pp; marginal improvement driven by noise in early folds)
+**Insight**: We are firmly in noise territory; mean ROI improvements at TW=4 are not reliable signals.
+
+---
+
+## Run 109 — TRAIN_WINDOW_YEARS=3
+**Result**: roi=+36.61% mean, fold4=+9.37% — much worse; brier degrades.
+**Decision**: REVERTED.
+
+---
+
+## Run 108 — luck_x_momentum + TW=None + PROB_CAP=(0.36,0.64)
+**Result**: roi=+38.13% mean, fold4=+10.54% — much worse.
+**Decision**: REVERTED.
+
+---
+
 ## Run 107 — Remove luck_x_momentum at TRAIN_WINDOW_YEARS=4 (KEPT — new best, WARNING)
 **Hypothesis**: Without luck_x_momentum, model might generalize better at 4-year window.
 **Change**: Removed luck_x_momentum from FEATURE_COLUMNS (with TRAIN_WINDOW_YEARS=4)
