@@ -37,6 +37,21 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 112 — Remove pythagorean_DIFF at TRAIN_WINDOW=4 (KEPT — new best, noise)
+**Change**: Removed pythagorean_DIFF (now: basic 43 features + day_of_week + sharp_x_fip + momentum_DIFF)
+**Result**: roi=+44.19% mean, fold4=-0.13%, n_bets=376
+**Decision**: KEPT (+0.06pp; fold4 now negative — firmly noise regime)
+
+---
+
+## Run 111 — 5-fold walk-forward (add 2021 fold)
+**Hypothesis**: 5 folds gives more robust mean and reduces noise sensitivity.
+**Change**: Added 2021 fold to WALK_FORWARD_FOLDS.
+**Result**: roi=+40.21% mean (5-fold), fold5=+0.31% — worse. 2021 fold has 21 bets (COVID training data issue).
+**Decision**: REVERTED; 4-fold is better framework with current data.
+
+---
+
 ## Run 110 — Remove luck_DIFF at TRAIN_WINDOW=4 (KEPT — new best, noise)
 **Change**: Removed luck_DIFF (kept pythagorean_DIFF, no luck_x_momentum, TRAIN_WINDOW=4)
 **Result**: roi=+44.13% mean, fold4=+0.31%, n_bets=373
