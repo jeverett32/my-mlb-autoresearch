@@ -38,6 +38,7 @@ WALK_FORWARD_FOLDS = [
     ("2022-01-01", "2022-01-01", "2023-01-01"),   # train ≤2021, val=2022
     ("2023-01-01", "2023-01-01", "2024-01-01"),   # train ≤2022, val=2023
     ("2024-01-01", "2024-01-01", "2025-01-01"),   # train ≤2023, val=2024
+    ("2025-01-01", "2025-01-01", "2026-01-01"),   # train ≤2024, val=2025
 ]
 
 # ---------------------------------------------------------------------------
@@ -242,7 +243,7 @@ CONFIDENCE_THRESHOLD = 0.13   # minimum edge (model_prob - market_implied_prob)
 DYNAMIC_THRESHOLD    = False  # if True: threshold = BASE + 0.02 * abs(mp - 0.5)
 KELLY_FRACTION       = 0.25   # fractional Kelly multiplier
 MAX_BET_FRAC         = 0.25   # hard cap on any single bet (fraction of unit stake)
-PROB_CAP             = (0.35, 0.65)  # clip model probs before edge cap (reduces overconfidence)
+PROB_CAP             = (0.25, 0.75)  # clip model probs before edge cap (reduces overconfidence)
 WARMUP_KELLY_MULT    = 0.5    # multiply Kelly stake by this for early-season games
 
 # MLP params (only used when MODEL="mlp")
