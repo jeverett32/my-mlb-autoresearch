@@ -37,6 +37,15 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 14 — LR L1 C=0.05 threshold=0.07 (test diminishing returns)
+**Hypothesis**: threshold=0.07 continues the ROI-vs-volume tradeoff; finding the peak before sample size degrades variance too much.
+**Change**: CONFIDENCE_THRESHOLD=0.07 (was 0.06)
+**Result**: roi=+21.62%, brier=0.2363, n_bets=1877 (3-fold mean)
+**Decision**: KEPT (new best: +0.41pp over 0.06)
+**Insight**: ROI still rising but n_bets declining sharply; likely approaching peak selectivity.
+
+---
+
 ## Run 13 — LR L1 C=0.05 threshold=0.06 (even more selective)
 **Hypothesis**: Pushing threshold to 0.06 further concentrates bets on highest-confidence predictions; diminishing returns may kick in as sample size shrinks.
 **Change**: CONFIDENCE_THRESHOLD=0.06 (was 0.05)
