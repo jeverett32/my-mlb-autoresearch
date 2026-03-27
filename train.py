@@ -171,6 +171,7 @@ FEATURE_COLUMNS = [
     "days_since_asb",           # 0 pre/during ASB; days elapsed post-break
     "day_of_week",              # 0=Mon...6=Sun; travel/fatigue patterns
     "luck_DIFF",                # season_win_pct_DIFF - pythagorean_DIFF: regression-to-mean signal
+    "pythagorean_DIFF",         # h_pyth - a_pyth: rolling run efficiency ratio
 
     # --- Interactions ---
     "sharp_x_fip",              # sharp_move_flag * sp_fip_DIFF
@@ -714,6 +715,7 @@ def engineer_new_features(df_feat):
         h_swp = _gcol(df_feat, "h_season_win_pct")
         a_swp = _gcol(df_feat, "a_season_win_pct")
         df_feat["luck_DIFF"] = (h_swp - a_swp) - pyth_diff
+        df_feat["pythagorean_DIFF"] = pyth_diff
 
     return df_feat
 

@@ -37,6 +37,27 @@
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
 
+## Run 75 — pythagorean_DIFF feature (KEPT — new best)
+**Hypothesis**: Rolling Pythagorean win% ratio (RS^2/(RS^2+RA^2)) captures run production efficiency beyond raw run differential.
+**Change**: Added `pythagorean_DIFF = h_pyth - a_pyth` to engineer_new_features() and FEATURE_COLUMNS.
+**Result**: roi=+36.29% mean, brier=0.2368, fold4=+24.95%, n_bets=505
+**Decision**: KEPT (new best: +0.52pp over 35.77%; fold4 also improved)
+**Insight**: Pythagorean efficiency ratio carries independent signal from run_diff_avg — captures RS/RA balance separately.
+
+---
+
+## Run 74 — woba_x_sharp interaction
+**Result**: roi=+35.42% mean — worse. L1 zeroed or near-zeroed it.
+**Decision**: REVERTED
+
+---
+
+## Run 73 — threshold=0.14 at current best config
+**Result**: roi=+35.71% mean, fold4=+22.62% — slightly worse.
+**Decision**: REVERTED; threshold=0.13 optimal.
+
+---
+
 ## Run 72 — luck_DIFF feature (KEPT — new best)
 **Hypothesis**: Teams overperforming Pythagorean expectation (lucky wins) tend to regress; this luck differential gives an independent signal.
 **Change**: Added `luck_DIFF = season_win_pct_DIFF - pythagorean_DIFF` to engineer_new_features() and FEATURE_COLUMNS.
