@@ -65,7 +65,7 @@ EARLY_CUTOFF = 25   # games played threshold; None to disable specialist
 # ---------------------------------------------------------------------------
 BEST_W = 15           # rolling window (games) for win%, run-diff, etc.
 MOMENTUM_W = 10       # short window for hot/cold streak signal
-TRAIN_WINDOW_YEARS = 4    # limit training to last N years; None = use all history
+TRAIN_WINDOW_YEARS = None    # limit training to last N years; None = use all history
 EARLY_SEASON_GAMES = 15  # used for early_season_flag feature
 
 DROP_SUBSTR = {"game_pk", "odds_source", "starter_id"}
@@ -170,10 +170,18 @@ FEATURE_COLUMNS = [
     "month",                    # 1-12; season structure matters
     "days_since_asb",           # 0 pre/during ASB; days elapsed post-break
     "day_of_week",              # 0=Mon...6=Sun; travel/fatigue patterns
+    "post_rule_change",         # 1 if season >= 2023 (pitch clock, shift ban, bigger bases)
 
     # --- Interactions ---
     "sharp_x_fip",              # sharp_move_flag * sp_fip_DIFF
     "momentum_DIFF",            # (home 5g win% - home 15g win%) - same for away
+
+    # --- Pythagorean / luck ---
+    "luck_DIFF",                # (season_win_pct - pythagorean_win_pct) DIFF
+    "pythagorean_DIFF",         # expected win% from run scoring efficiency DIFF
+    "luck_x_momentum",          # lucky teams trending up → due for regression
+    "park_x_pythagorean",       # park factor amplifies pythagorean edge
+    "pythagorean_short_DIFF",   # short-window (MOMENTUM_W) pythagorean DIFF
 ]
 
 # Early specialist feature set: used when EARLY_CUTOFF is set and either team
@@ -598,7 +606,9 @@ def load_and_engineer_features():
 
     df_feat = df.merge(roll_main,  on="game_id", how="left")
     df_feat = df_feat.merge(
-        roll_short[["game_id", f"h_win_pct_{MOMENTUM_W}", f"a_win_pct_{MOMENTUM_W}"]],
+        roll_short[["game_id", f"h_win_pct_{MOMENTUM_W}", f"a_win_pct_{MOMENTUM_W}",
+                    f"h_runs_scored_avg_{MOMENTUM_W}", f"h_runs_allowed_avg_{MOMENTUM_W}",
+                    f"a_runs_scored_avg_{MOMENTUM_W}", f"a_runs_allowed_avg_{MOMENTUM_W}"]],
         on="game_id", how="left")
 
     print("Building pitcher features...")
@@ -718,6 +728,26 @@ def engineer_new_features(df_feat):
     # Luck x momentum: lucky teams trending up are especially due for regression
     if "luck_DIFF" in df_feat.columns and "momentum_DIFF" in df_feat.columns:
         df_feat["luck_x_momentum"] = df_feat["luck_DIFF"] * df_feat["momentum_DIFF"]
+
+    # Park x pythagorean: high-scoring parks amplify run-efficiency edge
+    if "pythagorean_DIFF" in df_feat.columns and "park_factor" in df_feat.columns:
+        df_feat["park_x_pythagorean"] = df_feat["park_factor"] * df_feat["pythagorean_DIFF"]
+
+    # Short-window pythagorean
+    h_rs_s = _gcol(df_feat, f"h_runs_scored_avg_{MOMENTUM_W}").replace(0, np.nan)
+    h_ra_s = _gcol(df_feat, f"h_runs_allowed_avg_{MOMENTUM_W}").replace(0, np.nan)
+    a_rs_s = _gcol(df_feat, f"a_runs_scored_avg_{MOMENTUM_W}").replace(0, np.nan)
+    a_ra_s = _gcol(df_feat, f"a_runs_allowed_avg_{MOMENTUM_W}").replace(0, np.nan)
+    if not (h_rs_s.isna().all() or h_ra_s.isna().all()):
+        h_pyth_s = h_rs_s ** 2 / (h_rs_s ** 2 + h_ra_s ** 2)
+        a_pyth_s = a_rs_s ** 2 / (a_rs_s ** 2 + a_ra_s ** 2)
+        df_feat["pythagorean_short_DIFF"] = h_pyth_s - a_pyth_s
+
+    # Post rule-change flag: 2023 changes (pitch clock, shift ban, bigger bases) may alter patterns
+    if "game_date" in df_feat.columns:
+        df_feat["post_rule_change"] = (pd.to_datetime(df_feat["game_date"]).dt.year >= 2023).astype(int)
+    elif "season" in df_feat.columns:
+        df_feat["post_rule_change"] = (df_feat["season"] >= 2023).astype(int)
 
     return df_feat
 

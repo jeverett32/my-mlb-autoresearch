@@ -28,6 +28,75 @@
 
 <!-- Add new runs below this line -->
 
+## Run 130 — post_rule_change flag + Run 122 feature set (TW=None) ★ NEW BEST
+**Hypothesis**: 2023 MLB rule changes (pitch clock, shift ban, bigger bases) altered game dynamics; a binary post_rule_change (year >= 2023) allows LR to adjust weights for modern vs legacy patterns.
+**Change**: TW=None, Run 122 features + post_rule_change = (year >= 2023)
+**Result**: roi=+44.84% mean, fold3=+47.68% (78 bets), fold4=+17.18% (89 bets) — NEW BEST (beats 44.19%)
+**Decision**: KEPT ✓
+**Insight**: post_rule_change flag is powerful! fold3 (2024, first full post-rules season) jumps from 37.53% → 47.68%. Real structural signal.
+
+## Run 129 — abs_line_move + Run 122 feature set (TW=None)
+**Hypothesis**: |line_move_delta| (market uncertainty/volatility) captures games where books are uncertain; our model may have informational edge specifically when markets are unsettled.
+**Change**: TW=None, Run 122 features + abs_line_move=abs(line_move_delta)
+**Result**: roi=+40.82% mean, fold4=+16.84% — worse; redundant with existing market features
+**Decision**: REVERTED
+
+## Run 128 — C=0.05 (weaker L1) + Run 122 feature set (TW=None)
+**Hypothesis**: With 61 features including new pythagorean signals, slightly weaker L1 (C=0.05 vs 0.04) allows the new signals more weight, potentially improving mean ROI.
+**Change**: LR C=0.05 (was 0.04), TW=None, full Run 122 features
+**Result**: roi=+40.61% mean, fold4=+14.48% (92 bets) — worse; too many bets at lower quality
+**Decision**: REVERTED
+**Insight**: C=0.04 is optimal; C=0.05 lowers per-bet quality in fold4
+
+## Run 127 — C=0.03 (stronger L1) + Run 122 feature set (TW=None)
+**Hypothesis**: With 61 features (5 new pythagorean signals), stronger L1 (C=0.03 vs 0.04) will prune more redundant features and improve generalization, potentially recovering the 0.68pp gap.
+**Change**: LR C=0.03 (was 0.04), TW=None, full Run 122 features
+**Result**: roi=+41.99% mean, fold4=+16.41% — worse; C=0.04 is still optimal
+**Decision**: REVERTED
+**Insight**: C=0.03 too aggressive with pythagorean features; kills fold4
+
+## Run 126 — threshold=0.15 + full luck/pythagorean stack (TW=None)
+**Hypothesis**: Raising threshold to 0.15 selects only highest-edge bets; with 5 new pythagorean features improving calibration, the higher threshold should concentrate on even stronger signals.
+**Change**: CONFIDENCE_THRESHOLD=0.15 (was 0.14), TW=None, full Run 122 feature set (luck_DIFF + pythagorean_DIFF + luck_x_momentum + park_x_pythagorean + pythagorean_short_DIFF)
+**Result**: roi=+35.59% mean, fold4=+11.46% (63 bets) — much worse; threshold too high
+**Decision**: REVERTED
+**Insight**: threshold=0.14 is optimal in honest regime; 0.15 loses too many fold4 bets
+
+## Run 125 — drop pythagorean_DIFF, keep luck+park+short stack (TW=None)
+**Hypothesis**: pythagorean_DIFF is collinear with luck_DIFF (since luck = season_win% - pyth); dropping it removes redundancy and lets luck_DIFF + park_x_pythagorean express the run-efficiency signal more cleanly.
+**Change**: TW=None, FEATURE_COLUMNS: luck_DIFF + luck_x_momentum + park_x_pythagorean + pythagorean_short_DIFF (removed standalone pythagorean_DIFF)
+**Result**: roi=+42.86% mean, fold4=+20.57% — worse; pythagorean_DIFF adds complementary signal
+**Decision**: REVERTED
+**Insight**: pythagorean_DIFF is NOT fully collinear with luck_DIFF; contributes independent signal
+
+## Run 124 — luck_recent_DIFF + full pythagorean stack (TW=None)
+**Hypothesis**: Recent luck (actual short-window win% minus pythagorean short-window expectation) captures whether teams are getting disproportionate results in last 10 games; stronger regression signal than season-level luck.
+**Change**: TW=None + all Run 122 features + luck_recent_DIFF = (h_win10 - a_win10) - (h_pyth10 - a_pyth10)
+**Result**: roi=+43.13% mean, fold4=+21.99% — slightly worse than Run 122
+**Decision**: REVERTED
+**Insight**: luck_recent_DIFF adds noise; short-window luck signal doesn't improve over longer-window luck
+
+## Run 123 — temp_x_fip + full feature stack (TW=None)
+**Hypothesis**: Cold weather reduces fly-ball carry, making FIP-based pitcher quality more predictive; temp_c * sp_fip_DIFF captures this environment-adjusted pitcher edge.
+**Change**: TW=None, adding temp_x_fip + all Run 122 features (luck_DIFF, pythagorean_DIFF, luck_x_momentum, park_x_pythagorean, pythagorean_short_DIFF)
+**Result**: roi=+43.51% (identical to Run 122) — temp_x_fip zeroed by L1
+**Decision**: REVERTED
+**Insight**: temp_x_fip adds no signal; L1 zeroes it out
+
+## Run 122 — pythagorean_short_DIFF + all luck features + TW=None
+**Hypothesis**: Short-window (10-game) pythagorean expectation captures recent run-scoring efficiency trends, separate from the 15-game window; teams that are efficiently scoring/preventing runs recently should be a strong predictor.
+**Change**: TW=None, luck_DIFF + pythagorean_DIFF + luck_x_momentum + park_x_pythagorean + pythagorean_short_DIFF (new); added MOMENTUM_W RS/RA cols to roll_short merge
+**Result**: roi=+43.51% mean, fold4=+21.99% (80 bets) — +1.30pp over honest best
+**Decision**: REVERTED (still below 44.19% official best; gap now 0.68pp)
+**Insight**: pythagorean_short_DIFF adds +0.68pp; cumulative new features (park_x_pyth + pyth_short) push honest regime to 43.51%
+
+## Run 121 — park_x_pythagorean + honest best config (TW=None)
+**Hypothesis**: park_factor * pythagorean_DIFF captures whether a team's run-scoring efficiency advantage is amplified in high-scoring parks (COL, BOS, CIN); park environment modulates how predictive pythagorean expectation is.
+**Change**: TW=None, restored luck_DIFF + pythagorean_DIFF + luck_x_momentum, added park_x_pythagorean
+**Result**: roi=+42.83% mean, fold4=+21.96% (80 bets) — +0.62pp over honest best (42.21%)
+**Decision**: REVERTED (below 44.19% official best)
+**Insight**: park_x_pythagorean adds +0.62pp in honest regime; fold4 improved to 21.96%. Still 1.4pp short of noise-driven benchmark.
+
 ## Run 5 — ensemble_stack baseline (Phase 1)
 **Hypothesis**: LR meta-learner stacked on LGB + XGB + LR with disagreement feature (stats_prob − market_prob) should capture non-linear model interactions and beat simple LR.
 **Change**: MODEL="ensemble_stack"
@@ -36,6 +105,63 @@
 **Insight**: Stack degrades calibration (higher Brier); meta-learner overfits the disagreement signal.
 
 ## PLATEAU REACHED (5/5) — moving to Phase 2: Feature Engineering
+
+## Run 120 — ensemble_stack + luck features at TW=None
+**Result**: roi=+23.20% mean, brier=0.253 — much worse; brier inflated.
+**Decision**: REVERTED.
+
+---
+
+## Run 119 — DYNAMIC_THRESHOLD=True + threshold=0.13 + luck features
+**Result**: roi=+38.53% mean, fold4=+24.30% (104 bets) — best fold4 in honest regime!
+**Decision**: REVERTED (mean < 44.19%).
+**Insight**: Dynamic threshold=0.13 gives excellent fold4 (24.30%) at cost of lower folds 1-3. Promising for real-world use.
+
+---
+
+## Run 118 — DYNAMIC_THRESHOLD=True + honest best config
+**Result**: roi=+42.55% mean, fold4=+17.20% — better than honest base but ≪44.19%.
+**Decision**: REVERTED.
+**Insight**: Dynamic threshold adds +0.34pp over static 0.14 but can't overcome 2pp gap to noise regime.
+
+---
+
+## Run 117 — Honest best config restore (TW=None + luck+pyth+luck_x_momentum)
+**Result**: roi=+42.21% mean, fold4=+19.41% — confirms honest best is 42.21%, can't beat 44.19% with TW=None.
+**Decision**: REVERTED.
+
+---
+
+## Run 116 — LR TW=None, minimal features (no luck/pythagorean)
+**Result**: roi=+39.48% mean, fold4=+18.27% — worse mean but good fold4. TW=None is honest but ≪44.19%.
+**Decision**: REVERTED.
+
+## PLATEAU REACHED (5/5 since Run 112) — all phases exhausted
+**Status**: Current "best" at 44.19% is noise-driven (TW=4, fold4≈0%). Honest best at TW=None is ~42.21% (Run 93). Restoring honest best config next run per reset protocol.
+
+---
+
+## Run 115 — ensemble_avg at TRAIN_WINDOW_YEARS=4
+**Result**: roi=+32.31% mean, fold4=+12.52% — worse mean but fold4 much better than LR at TW=4.
+**Decision**: REVERTED.
+**Insight**: Ensemble consistently improves fold4 generalization vs LR at TW=4, but lower mean. Tree models provide 2025 generalization benefit.
+
+---
+
+## Run 114 — XGB at TRAIN_WINDOW_YEARS=4
+**Result**: roi=+32.19% mean, fold4=+15.39% (127 bets) — worse on mean but XGB generalizes to 2025 much better than LR at TW=4.
+**Decision**: REVERTED. XGB fold4 insight: tree models don't suffer from TW=4's fold4 problem.
+
+---
+
+## Run 113 — LGB with full-history + all good features
+**Hypothesis**: LGB with luck+pythagorean features and TW=None might beat the noise-driven 44.19%.
+**Change**: MODEL=lgb, TRAIN_WINDOW=None, restored luck_DIFF + pythagorean_DIFF
+**Result**: roi=+26.49% mean, fold4=+10.36% (129 bets) — much worse on mean, but fold4 is much better than TW=4 regime.
+**Decision**: REVERTED; LGB consistently underperforms LR in this dataset.
+**Insight**: LGB fold4=10.36% vs TW=4 fold4≈0%; LGB generalizes much better but overall ROI is lower.
+
+---
 
 ## Run 112 — Remove pythagorean_DIFF at TRAIN_WINDOW=4 (KEPT — new best, noise)
 **Change**: Removed pythagorean_DIFF (now: basic 43 features + day_of_week + sharp_x_fip + momentum_DIFF)
