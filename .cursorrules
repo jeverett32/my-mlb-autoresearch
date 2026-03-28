@@ -1,0 +1,62 @@
+# MLB Autoresearch: Behavior & Efficiency Rules
+
+# --- Autonomy ---
+- NEVER ask the user for permission, direction, or confirmation during the experiment loop.
+- Every decision has a deterministic rule in program.md. Follow it and keep going.
+- If something is ambiguous, pick the most conservative option (e.g., revert) and continue.
+
+# --- File Permissions (strict) ---
+- You may ONLY edit these files: train.py, experiment_log.md, experiment_log_archive.md, data_dictionary.md
+- You may ONLY create files in: scripts/ (new helper scripts if absolutely necessary, following existing patterns)
+- Do NOT edit: program.md, .clauderules, research_backlog.md, feature_engineering.md, results.tsv, check_improvement.py, scripts/checkpoint_best.sh, master_mlb.csv
+- results.tsv is written by train.py automatically — never hand-edit it.
+
+# --- Token Management & Efficiency ---
+- NEVER use 'cat', 'read', 'open', or any tool to read 'run.log' or 'master_mlb.csv' directly.
+- NEVER write ad-hoc Python or bash scripts inline to gather information. Use only scripts in scripts/.
+- Use these scripts for ALL information gathering:
+    scripts/get_results.sh          — metrics from last run (val_roi, val_brier, n_bets, fold results)
+    scripts/get_baseline.sh         — best ROI, latest row, plateau count from results.tsv
+    scripts/get_features.sh         — current FEATURE_COLUMNS and EARLY_FEATURE_COLUMNS
+    scripts/get_params.sh           — all tunable hyperparameters from train.py
+    scripts/get_importances.sh      — LGB/XGB feature importances from run.log
+    scripts/revert_train.sh         — revert train.py to HEAD after a failed run
+    scripts/checkpoint_best.sh      — commit + push if new best ROI
+- Keep experiment_log.md entries extremely concise. Use the prescribed format in program.md.
+- Do NOT read experiment_log_archive.md on every run. Only read it when checking if a specific approach was tried before the current log window.
+- If experiment_log.md exceeds 15 entries, summarize Key Findings and move oldest 10 to experiment_log_archive.md.
+- Every 10 entries after the initial move, move the oldest 10 to archive. Keep 5–15 entries live.
+
+# --- Technical Constraints ---
+- Always use 'uv run' to execute Python scripts.
+- evaluate() in train.py is immutable ground truth. Do not modify it.
+- run_walk_forward() in train.py is immutable. You may change WALK_FORWARD_FOLDS values, not the engine.
+- When adding features, reference data_dictionary.md to ensure directional consistency (Positive = Home Advantage).
+- All new features added in engineer_new_features() must use only upstream-lagged columns. Check feature_engineering.md Phase 1 before training.
+- GBDTs (lgb, xgb) handle NaN natively — do NOT impute before passing to build_lgb() or build_xgb().
+- LR and MLP have SimpleImputer built in — do NOT pre-impute for them either.
+- If a run crashes with OOM: reduce LGB/XGB n_estimators first.
+- val_roi in results.tsv is the WALK-FORWARD MEAN ROI. MLP-era single-split ROI is NOT comparable.
+
+# --- Research Protocol ---
+- Follow the Thinker Protocol in program.md before every edit.
+- Check plateau count via scripts/get_baseline.sh. If >= 5, pivot to next phase per program.md.
+- Record hypothesis in experiment_log.md BEFORE running the training script.
+- Run 'scripts/get_results.sh' after every run to confirm no crash before logging.
+- Run 'scripts/get_baseline.sh' after every run to get ROI comparison and plateau count.
+
+# --- Environment Context ---
+- OS: Linux (Ubuntu) via SSH.
+- Primary Metric: val_roi (walk-forward mean across all folds).
+- Secondary Metric: val_brier (< 0.241 = properly calibrated).
+- MLP-era single-split ROI and walk-forward mean ROI are NOT on the same scale.
+
+# --- Code Hygiene ---
+- Delete dead code from failed runs immediately.
+- No debug print statements in final commits.
+- New features added to engineer_new_features() must also be documented in data_dictionary.md Section 8 before committing.
+- EARLY_FEATURE_COLUMNS is a separate list for the early-season specialist. Features used there do NOT need to be in FEATURE_COLUMNS.
+
+# --- Git Recovery ---
+- NEVER use 'git reset --hard' if it would delete experiment_log.md or results.tsv.
+- To revert a failed experiment: scripts/revert_train.sh (wraps git checkout HEAD -- train.py)
