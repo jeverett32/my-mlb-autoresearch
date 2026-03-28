@@ -24,6 +24,12 @@
 
 <!-- Add new runs below this line -->
 
+## Run 145 — covid_era flag (2020 unusual 60-game season) ★ NEW BEST (marginal)
+**Hypothesis**: 2020 was a 60-game season with no fans and unusual player conditioning; training data from 2020 may mislead the model. A covid_era flag lets LR downweight 2020 patterns.
+**Change**: Add covid_era = (year == 2020)
+**Result**: roi=+44.85% (+0.0002pp) — effectively identical
+**Decision**: KEPT ✓
+
 ## Run 144 — post_dh_era flag (universal DH from 2022) + Run 130 config ★ NEW BEST (marginal)
 **Hypothesis**: Universal DH adopted in 2022 changed batting lineup quality calculations for NL teams; a separate binary flag for year >= 2022 may add independent signal from post_rule_change (2023).
 **Change**: Add post_dh_era = (year >= 2022) alongside post_rule_change
