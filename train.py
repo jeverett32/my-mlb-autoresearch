@@ -171,6 +171,7 @@ FEATURE_COLUMNS = [
     "days_since_asb",           # 0 pre/during ASB; days elapsed post-break
     "day_of_week",              # 0=Mon...6=Sun; travel/fatigue patterns
     "post_rule_change",         # 1 if season >= 2023 (pitch clock, shift ban, bigger bases)
+    "post_dh_era",              # 1 if season >= 2022 (universal DH: NL pitchers no longer bat)
 
     # --- Interactions ---
     "sharp_x_fip",              # sharp_move_flag * sp_fip_DIFF
@@ -745,9 +746,12 @@ def engineer_new_features(df_feat):
 
     # Post rule-change flag: 2023 changes (pitch clock, shift ban, bigger bases) may alter patterns
     if "game_date" in df_feat.columns:
-        df_feat["post_rule_change"] = (pd.to_datetime(df_feat["game_date"]).dt.year >= 2023).astype(int)
+        year_series = pd.to_datetime(df_feat["game_date"]).dt.year
+        df_feat["post_rule_change"] = (year_series >= 2023).astype(int)
+        df_feat["post_dh_era"] = (year_series >= 2022).astype(int)
     elif "season" in df_feat.columns:
         df_feat["post_rule_change"] = (df_feat["season"] >= 2023).astype(int)
+        df_feat["post_dh_era"] = (df_feat["season"] >= 2022).astype(int)
 
     return df_feat
 

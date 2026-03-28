@@ -147,3 +147,17 @@ ca37fdd	0.419933	0.236803	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=1
 ca37fdd	0.406076	0.236882	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=60
 ca37fdd	0.408192	0.236889	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=61
 ca37fdd	0.448433	0.236850	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=61
+bd17ccc	0.448433	0.236850	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=62
+bd17ccc	0.439764	0.236850	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=61
+bd17ccc	0.428715	0.236850	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=61
+bd17ccc	0.444412	0.236847	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=62
+bd17ccc	0.392375	0.236806	ok	model=lr calibrate=True folds=4 early_cutoff=20 W=15 momentum_W=10 threshold=0.14 feats=61
+bd17ccc	0.419735	0.237029	ok	model=lr calibrate=True folds=4 early_cutoff=30 W=15 momentum_W=10 threshold=0.14 feats=61
+bd17ccc	0.448433	0.236850	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=62
+bd17ccc	0.428701	0.236897	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=62
+bd17ccc	0.271025	0.240440	ok	model=lgb calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=61
+bd17ccc	0.442852	0.236896	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=62
+bd17ccc	0.427806	0.236970	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=7 threshold=0.14 feats=61
+bd17ccc	0.390276	0.237008	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=12 momentum_W=10 threshold=0.14 feats=61
+bd17ccc	0.437177	0.236861	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=60
+bd17ccc	0.448466	0.236845	ok	model=lr calibrate=True folds=4 early_cutoff=25 W=15 momentum_W=10 threshold=0.14 feats=62
