@@ -6,9 +6,9 @@
 - If something is ambiguous, pick the most conservative option (e.g., revert) and continue.
 
 # --- File Permissions (strict) ---
-- You may ONLY edit these files: train.py, experiment_log.md, experiment_log_archive.md, data_dictionary.md
+- You may ONLY edit these files: train.py, experiment_log.md, experiment_log_archive.md, data_dictionary.md, research_backlog.md
 - You may ONLY create files in: scripts/ (new helper scripts if absolutely necessary, following existing patterns)
-- Do NOT edit: program.md, .clauderules, research_backlog.md, feature_engineering.md, results.tsv, check_improvement.py, scripts/checkpoint_best.sh, master_mlb.csv
+- Do NOT edit: program.md, .clauderules, feature_engineering.md, results.tsv, check_improvement.py, scripts/checkpoint_best.sh, master_mlb.csv
 - results.tsv is written by train.py automatically — never hand-edit it.
 
 # --- Token Management & Efficiency ---
